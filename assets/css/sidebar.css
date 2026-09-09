@@ -284,6 +284,36 @@ body.admin-bar.header-variant-c #bar {
   top: 32px;
 }
 
+/* Header variant D: kompakt */
+body.header-variant-d {
+  --topbar-h: 52px;
+}
+
+.site-topbar.header-variant-d .topbar-inner {
+  padding: 6px var(--content-pad) 6px;
+  gap: 4px;
+}
+
+.site-topbar.header-variant-d .s-name {
+  font-size: 0.6rem;
+}
+
+.site-topbar.header-variant-d .nav-main a {
+  font-size: 0.8rem;
+}
+
+body.admin-bar.header-variant-d {
+  padding-top: calc(52px + 32px);
+}
+
+body.admin-bar .site-topbar.header-variant-d {
+  top: 32px;
+}
+
+body.admin-bar.header-variant-d #bar {
+  top: 32px;
+}
+
 #mobile-toggle {
   display: none;
   border: none;

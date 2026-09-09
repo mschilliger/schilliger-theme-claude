@@ -914,7 +914,7 @@ add_action('customize_register', function (WP_Customize_Manager $wp_customize) {
 	$wp_customize->add_setting('schilliger_header_variant', [
 		'type' => 'theme_mod',
 		'sanitize_callback' => function ($value) {
-			$allowed = ['a', 'b', 'c'];
+			$allowed = ['a', 'b', 'c', 'd'];
 			return in_array($value, $allowed, true) ? $value : 'a';
 		},
 		'default' => 'a',
@@ -927,6 +927,7 @@ add_action('customize_register', function (WP_Customize_Manager $wp_customize) {
 			'a' => __('Variante A (Editorial Leiste)', 'schilliger'),
 			'b' => __('Variante B (Minimal Bold)', 'schilliger'),
 			'c' => __('Variante C (Radikal / Manifest)', 'schilliger'),
+			'd' => __('Variante D (Kompakt)', 'schilliger'),
 		],
 	]);
 
