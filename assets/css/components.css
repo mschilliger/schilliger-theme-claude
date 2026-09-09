@@ -1,0 +1,147 @@
+.sec {
+  padding: 80px var(--content-pad);
+  border-bottom: 1px solid var(--rule);
+}
+
+h2,
+h3 {
+  font-family: "Roboto", sans-serif;
+}
+
+.eyebrow {
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.eyebrow::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--accent);
+}
+
+.sec-h {
+  font-family: var(--display);
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1;
+  margin: 0 0 40px;
+}
+
+.more-link {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 36px;
+  text-decoration: none;
+  color: var(--mid);
+  font-family: var(--display);
+  font-size: 1rem;
+  font-style: italic;
+  transition: color 0.25s ease, gap 0.3s ease;
+}
+
+.more-link::after {
+  content: "→";
+  font-style: normal;
+}
+
+.more-link:hover {
+  color: var(--accent);
+  gap: 16px;
+}
+
+.archive-wrap {
+  padding: 80px var(--content-pad);
+}
+
+.post-body {
+  font-family: var(--body);
+  font-size: 1.1rem;
+  line-height: 1.85;
+}
+
+.post-body p + p {
+  margin-top: 1.4em;
+}
+
+.post-body blockquote {
+  border-left: 1px solid var(--accent);
+  margin: 2em 0;
+  padding-left: 1rem;
+  font-size: 1.4rem;
+  font-style: normal;
+  font-weight: 700;
+  color: #0c0c0c;
+}
+
+.post-body figure {
+  margin: 2.2em 0;
+}
+
+.post-body figcaption {
+  font-family: var(--sans);
+  font-size: 0.48rem;
+  color: var(--light);
+  border-top: 1px solid var(--rule);
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.pagination-wrap ul {
+  list-style: none;
+  padding: 0;
+  margin: 36px 0 0;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--sans);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+}
+
+.pagination-wrap a,
+.pagination-wrap span {
+  text-decoration: none;
+  color: var(--mid);
+}
+
+.newsletter-embed {
+  margin: 32px 0;
+  padding: 24px;
+  border: 1px solid var(--rule);
+  background: var(--panel);
+}
+
+.newsletter-embed .eyebrow {
+  margin-bottom: 16px;
+}
+
+.newsletter-embed-title {
+  margin: 0 0 12px;
+  font-family: var(--display);
+  font-size: 1.5rem;
+}
+
+.newsletter-embed-text {
+  margin: 0 0 14px;
+}
+
+.newsletter-embed .nl-form {
+  max-width: 620px;
+}
+
+@media (max-width: 768px) {
+  .sec,
+  .archive-wrap {
+    padding: 52px 24px;
+  }
+}

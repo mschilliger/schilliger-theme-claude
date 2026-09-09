@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Michael Schilliger</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;800&family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+
+:root {
+  --ink:    #1c2028;
+  --mid:    #6e7a8a;
+  --light:  #a8b4c0;
+  --paper:  #eceef4;
+  --off:    #e2ddd8;
+  --panel:  #dde0e8;
+  --rule:   rgba(28,32,40,.09);
+  --accent: #6a8da8;
+
+  --display: 'Roboto', Georgia, serif;
+  --body:    'Lora', Georgia, serif;
+  --sans:    'IBM Plex Sans', system-ui, sans-serif;
+
+  --nav: 228px;
+}
+
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+html { font-size:18px; }
+body {
+  font-family: var(--body);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.75;
+  cursor: none;
+}
+
+/* ── PAGE SWITCHER (preview only) ── */
+.page-switcher {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  z-index: 9000;
+  display: flex; gap: 8px;
+}
+.ps-btn {
+  font-family: var(--sans); font-size: .55rem; font-weight: 500;
+  letter-spacing: .12em; text-transform: uppercase;
+  background: var(--ink); color: var(--paper);
+  border: none; border-radius: 3px;
+  padding: 10px 16px; cursor: pointer;
+  transition: background .2s;
+  opacity: .55;
+}
+.ps-btn:hover { opacity: 1; }
+.ps-btn.active { opacity: 1; background: var(--accent); }
+
+.page { display: none; }
+.page.visible { display: flex; }
+
+/* ── CURSOR ── */
+#cur { position:fixed; pointer-events:none; z-index:9999; transform:translate(-3px,-22px); opacity:0; transition:opacity .3s; }
+body.r #cur { opacity:1; }
+#cur svg { width:20px; height:20px; transition:transform .12s; }
+body.d #cur svg { transform:rotate(-10deg) scale(.85); }
+
+/* ── PROGRESS ── */
+#bar { position:fixed; top:0; left:var(--nav); right:0; z-index:300; height:1px; background:var(--accent); transform-origin:left; transform:scaleX(0); transition: left .35s cubic-bezier(.4,0,.2,1); }
+
+/* ═══════════════════════════════════════════
+   SIDEBAR (desktop)
+═══════════════════════════════════════════ */
+aside {
+  position: fixed; top:0; left:0; bottom:0; width:var(--nav);
+  background: var(--panel);
+  display: flex; flex-direction: column;
+  padding: 40px 28px;
+  z-index: 50;
+  transition: transform .35s cubic-bezier(.4,0,.2,1);
+  border-right: 1px solid var(--rule);
+  overflow-y: auto;
+}
+body.nav-closed aside   { transform: translateX(-100%); }
+body.nav-closed main    { margin-left: 0; }
+body.nav-closed #bar    { left: 0; }
+
+main { margin-left: var(--nav); transition: margin-left .35s cubic-bezier(.4,0,.2,1); }
+
+/* Re-open tab */
+#nav-open {
+  position: fixed; top:24px; left:0; z-index:200;
+  background: var(--panel); border: 1px solid var(--rule); border-left:none;
+  border-radius: 0 4px 4px 0;
+  padding: 10px; cursor: none; display:none;
+  align-items:center; justify-content:center;
+  transition: background .2s; color:var(--mid);
+}
+#nav-open:hover { background: var(--off); color:var(--ink); }
+body.nav-closed #nav-open { display:flex; }
+
+.s-name {
+  font-family:var(--display); font-size:1.1rem; font-weight:400;
+  color:var(--ink); line-height:1.2; text-decoration:none; display:block; margin-bottom:4px;
+}
+.s-role {
+  font-family:var(--sans); font-size:.46rem; font-weight:300;
+  letter-spacing:.18em; text-transform:uppercase;
+  color:var(--light); display:block; margin-bottom:36px;
+}
+.nav-main { list-style:none; }
+.nav-main > li { border-top:1px solid var(--rule); }
+.nav-main > li:last-child { border-bottom:1px solid var(--rule); }
+.nav-main > li > a {
+  font-family:var(--display); font-size:.88rem; font-weight:500;
+  color:var(--mid); text-decoration:none; display:block; padding:9px 0;
+  transition:color .2s, padding-left .2s;
+}
+.nav-main > li > a:hover { color:var(--ink); padding-left:4px; }
+.nav-main > li > a.on   { color:var(--ink); font-weight:600; }
+
+.nav-toc { list-style:none; display:none; padding-bottom:6px; }
+.nav-main > li.active .nav-toc { display:block; }
+.nav-toc a {
+  font-family:var(--sans); font-size:.82rem; font-weight:400;
+  color:var(--mid); text-decoration:none; display:block;
+  padding:7px 0 7px 14px;
+  border-left:2px solid var(--rule); margin-left:2px;
+  transition:color .2s, border-color .2s;
+}
+.nav-toc a:hover { color:var(--ink); border-color:var(--mid); }
+.nav-toc a.here  { color:var(--accent); border-color:var(--accent); }
+
+.s-contact {
+  border-top:1px solid var(--rule);
+  padding-top:20px; margin-top:auto;
+  display:flex; flex-direction:column; gap:6px;
+}
+.s-contact-lbl {
+  font-family:var(--sans); font-size:.44rem; font-weight:300;
+  letter-spacing:.2em; text-transform:uppercase;
+  color:var(--light); display:block; margin-bottom:3px;
+}
+.s-contact a {
+  font-family:var(--display); font-size:.88rem; font-weight:300;
+  color:var(--mid); text-decoration:none; transition:color .2s;
+}
+.s-contact a:hover { color:var(--ink); }
+
+/* ═══════════════════════════════════════════
+   HOMEPAGE SECTIONS
+═══════════════════════════════════════════ */
+.sec { padding:80px 88px; border-bottom:1px solid var(--rule); }
+.sec:last-of-type { border-bottom:none; }
+
+.eyebrow {
+  font-family:var(--sans); font-size:.48rem; font-weight:500;
+  letter-spacing:.22em; text-transform:uppercase; color:var(--light);
+  display:flex; align-items:center; gap:16px; margin-bottom:40px;
+}
+.eyebrow::after { content:''; flex:1; height:1px; background:var(--rule); }
+
+.more-link {
+  display:inline-flex; align-items:center; gap:8px; margin-top:36px;
+  font-family:var(--display); font-size:1rem; font-style:italic;
+  color:var(--mid); text-decoration:none;
+  transition:color .25s, gap .3s;
+}
+.more-link:hover { color:var(--accent); gap:16px; }
+.more-link::after { content:'→'; font-style:normal; }
+
+/* INTRO */
+.sec-intro {
+  background:var(--paper);
+  display:grid; grid-template-columns: 1fr 260px; gap:72px; align-items:start;
+}
+.intro-portrait { width:100%; display:block; object-fit:cover; object-position:center top; filter:grayscale(8%) contrast(1.02); position:sticky; top:40px; }
+.intro-body { font-size:1.1rem; line-height:1.85; color:var(--mid); }
+.intro-body p+p { margin-top:.9em; }
+.intro-cta { margin-top:28px; }
+.intro-cta a {
+  font-family:var(--display); font-size:1.05rem; font-style:italic;
+  color:var(--accent); text-decoration:none;
+  display:inline-flex; align-items:center; gap:8px; transition:gap .3s;
+}
+.intro-cta a:hover { gap:16px; }
+.intro-cta a::after { content:'→'; font-style:normal; }
+
+/* PORTFOLIO */
+.sec-portfolio { background:var(--off); }
+.sec-h { font-family:var(--display); font-size:clamp(2rem,3.5vw,3rem); font-weight:800; color:var(--ink); line-height:1; margin-bottom:40px; }
+.grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+.card { cursor:none; overflow:hidden; }
+.card-img { position:relative; overflow:hidden; transition:transform .5s cubic-bezier(.25,.46,.45,.94); }
+.card:hover .card-img { transform:scale(1.03); }
+.card-img img { width:100%; height:auto; display:block; }
+.card-face { position:absolute; bottom:0; left:0; right:0; padding:16px 14px; background:linear-gradient(to top,rgba(14,12,10,.75) 0%,rgba(14,12,10,0) 60%); }
+.card-img::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--accent); transform:scaleX(0); transform-origin:left; transition:transform .4s; z-index:2; }
+.card:hover .card-img::after { transform:scaleX(1); }
+.c-pub { font-family:var(--sans); font-size:.44rem; letter-spacing:.2em; text-transform:uppercase; color:rgba(255,255,255,.4); }
+.c-ttl { font-family:var(--display); font-size:.9rem; font-weight:700; color:var(--ink); line-height:1.3; margin-top:10px; display:block; }
+.c-excerpt { font-family:var(--body); font-size:.78rem; line-height:1.6; color:var(--mid); margin-top:6px; }
+.c-read { font-family:var(--sans); font-size:.62rem; font-weight:500; letter-spacing:.08em; color:var(--accent); text-decoration:none; display:inline-block; margin-top:8px; transition:color .2s; }
+.c-read:hover { color:var(--ink); }
+
+/* BLOG */
+.b-feat { padding-bottom:44px; margin-bottom:8px; border-bottom:1px solid var(--rule); max-width:700px; }
+.b-kicker { font-family:var(--sans); font-size:.48rem; font-weight:300; letter-spacing:.2em; text-transform:uppercase; color:var(--light); display:block; margin-bottom:14px; }
+.b-title { font-family:var(--display); font-size:2.1rem; font-weight:400; line-height:1.18; color:var(--ink); text-decoration:none; display:block; margin-bottom:20px; transition:color .2s; }
+.b-title:hover { color:var(--accent); }
+.b-excerpt { font-size:1rem; line-height:1.85; color:var(--mid); padding-left:20px; border-left:1px solid var(--accent); margin-bottom:22px; }
+.b-cta { font-family:var(--display); font-size:1rem; font-style:italic; color:var(--accent); text-decoration:none; display:inline-flex; align-items:center; gap:8px; transition:gap .3s; }
+.b-cta:hover { gap:16px; }
+.b-cta::after { content:'→'; font-style:normal; }
+.b-list { display:flex; flex-direction:column; }
+.b-row { display:flex; justify-content:space-between; align-items:baseline; gap:24px; padding:17px 0; border-bottom:1px solid var(--rule); cursor:none; }
+.b-row:last-child { border-bottom:none; }
+.b-row:hover .b-ttl { color:var(--accent); }
+.b-ttl { font-family:var(--display); font-size:1.1rem; font-weight:400; color:var(--ink); text-decoration:none; line-height:1.35; transition:color .2s; }
+.b-dt  { font-family:var(--sans); font-size:.5rem; font-weight:300; letter-spacing:.04em; color:var(--light); white-space:nowrap; }
+
+/* NEWSLETTER */
+.sec-newsletter { background:var(--ink); padding:80px 88px; }
+.sec-newsletter .eyebrow { color:rgba(236,238,244,.25); }
+.sec-newsletter .eyebrow::after { background:rgba(236,238,244,.08); }
+.nl-h { font-family:var(--display); font-size:clamp(1.8rem,3vw,2.6rem); font-weight:800; color:rgba(236,238,244,.92); margin-bottom:10px; }
+.nl-sub { font-size:.98rem; line-height:1.7; color:rgba(236,238,244,.45); max-width:480px; margin-bottom:36px; }
+.nl-form { display:flex; max-width:480px; }
+.nl-input { flex:1; font-family:var(--body); font-size:.95rem; background:rgba(236,238,244,.07); border:1px solid rgba(236,238,244,.15); border-right:none; border-radius:3px 0 0 3px; padding:13px 18px; color:rgba(236,238,244,.85); outline:none; cursor:none; }
+.nl-input::placeholder { color:rgba(236,238,244,.25); }
+.nl-btn { font-family:var(--sans); font-size:.72rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; background:var(--accent); color:#fff; border:none; border-radius:0 3px 3px 0; padding:13px 24px; cursor:none; transition:background .2s; white-space:nowrap; }
+.nl-btn:hover { background:var(--mid); }
+.nl-note { font-family:var(--sans); font-size:.5rem; font-weight:300; letter-spacing:.08em; color:rgba(236,238,244,.2); margin-top:14px; display:block; }
+
+/* NOW */
+.sec-now { background:var(--off); }
+.now-h { font-family:var(--display); font-size:clamp(2.4rem,4vw,4rem); font-weight:800; line-height:1; color:var(--ink); margin-bottom:6px; }
+.now-yr { font-family:var(--sans); font-size:.48rem; font-weight:300; letter-spacing:.2em; text-transform:uppercase; color:var(--light); display:block; margin-bottom:44px; }
+.now-row { display:flex; gap:22px; padding:24px 0; border-bottom:1px solid var(--rule); max-width:700px; }
+.now-row:first-of-type { padding-top:0; }
+.now-row:last-of-type  { border-bottom:none; }
+.now-dash { color:var(--accent); font-family:var(--display); font-size:1rem; line-height:1.85; flex-shrink:0; }
+.now-txt  { font-size:1rem; line-height:1.85; }
+.now-txt strong { font-style:italic; font-weight:500; }
+
+/* AWARDS */
+.sec-awards { background:#1c2a38; }
+.sec-awards .eyebrow { color:rgba(236,238,244,.22); }
+.sec-awards .eyebrow::after { background:rgba(250,248,244,.08); }
+.awards-h { font-family:var(--display); font-size:clamp(2.4rem,4vw,4rem); font-weight:800; color:rgba(236,238,244,.85); line-height:1; margin-bottom:48px; }
+.a-row { display:grid; grid-template-columns:60px 108px 1fr; gap:40px; padding:15px 0; border-bottom:1px solid rgba(250,248,244,.07); align-items:baseline; overflow:hidden; white-space:nowrap; }
+.a-yr  { font-family:var(--sans); font-size:.56rem; font-weight:300; color:rgba(236,238,244,.3); letter-spacing:.06em; }
+.a-st  { font-family:var(--sans); font-size:.48rem; font-weight:300; letter-spacing:.14em; text-transform:uppercase; color:rgba(236,238,244,.2); }
+.a-st.w { color:rgba(80,160,100,.85); }
+.a-ttl { font-family:var(--display); font-style:italic; font-size:1rem; font-weight:300; color:rgba(236,238,244,.68); overflow:hidden; text-overflow:ellipsis; }
+
+/* FOOTER */
+footer { background:var(--paper); border-top:1px solid var(--rule); padding:28px 88px; display:flex; align-items:center; justify-content:space-between; }
+.f-name { font-family:var(--display); font-size:.95rem; font-style:italic; font-weight:300; color:var(--mid); }
+.f-links { display:flex; gap:28px; }
+.f-links a { font-family:var(--sans); font-size:.48rem; font-weight:300; letter-spacing:.14em; text-transform:uppercase; color:var(--light); text-decoration:none; transition:color .2s; }
+.f-links a:hover { color:var(--ink); }
+
+/* ═══════════════════════════════════════════
+   SINGLE REPORTAGE PAGE
+═══════════════════════════════════════════ */
+
+/* Layout wrapper for the post page */
+.post-page {
+  flex-direction: row;
+  min-height: 100vh;
+}
+
+/* Post page main uses same sidebar offset */
+.post-page main {
+  margin-left: var(--nav);
+  transition: margin-left .35s cubic-bezier(.4,0,.2,1);
+}
+body.nav-closed .post-page main { margin-left: 0; }
+
+/* ── Content column: centered in available space ── */
+.post-wrap {
+  max-width: 580px;
+  margin: 0 auto;
+  padding: 72px 0 80px;
+}
+
+/* Outer gutter: breathing room on both sides */
+.post-outer {
+  padding-left: 80px;
+  padding-right: 80px;
+}
+
+/* ── Header block ── */
+.post-kicker {
+  font-family: var(--sans);
+  font-size: .48rem; font-weight: 500;
+  letter-spacing: .22em; text-transform: uppercase;
+  color: var(--light);
+  display: block;
+  margin-bottom: 22px;
+}
+
+.post-title {
+  font-family: var(--display);
+  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.12;
+  color: var(--ink);
+  margin-bottom: 24px;
+}
+
+.post-lead {
+  font-family: var(--body);
+  font-size: 1.15rem;
+  line-height: 1.75;
+  color: var(--mid);
+  margin-bottom: 32px;
+}
+
+/* ── Metadata table ── */
+.post-meta {
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  padding: 16px 0;
+  margin-bottom: 40px;
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  row-gap: 10px;
+  column-gap: 24px;
+  align-items: baseline;
+}
+.post-meta-label {
+  font-family: var(--sans);
+  font-size: .46rem; font-weight: 300;
+  letter-spacing: .16em; text-transform: uppercase;
+  color: var(--light);
+}
+.post-meta-value {
+  font-family: var(--sans);
+  font-size: .75rem; font-weight: 400;
+  color: var(--mid);
+}
+.post-meta-value a {
+  color: var(--accent); text-decoration: none;
+}
+.post-meta-value a:hover { color: var(--ink); }
+
+/* ── Cover image ── */
+.post-cover {
+  width: 100%;
+  display: block;
+  margin-bottom: 48px;
+}
+.post-cover img {
+  width: 100%; height: auto; display: block;
+}
+.post-cover figcaption {
+  font-family: var(--sans);
+  font-size: .48rem; font-weight: 300;
+  letter-spacing: .04em;
+  color: var(--light);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
+}
+
+/* ── Body text ── */
+.post-body {
+  font-family: var(--body);
+  font-size: 1rem;
+  line-height: 1.9;
+  color: var(--ink);
+}
+
+.post-body p {
+  margin-bottom: 1.4em;
+}
+.post-body p:last-child { margin-bottom: 0; }
+
+/* Inline image within body */
+.post-body figure {
+  margin: 2.2em 0;
+}
+.post-body figure img {
+  width: 100%; height: auto; display: block;
+}
+.post-body figure figcaption {
+  font-family: var(--sans);
+  font-size: .48rem; font-weight: 300;
+  letter-spacing: .04em;
+  color: var(--light);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
+}
+
+/* ── Post footer: next/prev ── */
+.post-nav {
+  border-top: 1px solid var(--rule);
+  margin-top: 56px;
+  padding-top: 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 32px;
+}
+.post-nav a {
+  font-family: var(--display);
+  font-size: .95rem; font-style: italic;
+  color: var(--mid); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: color .2s, gap .3s;
+}
+.post-nav a:hover { color: var(--accent); }
+.post-nav .prev::before { content: '←'; font-style: normal; }
+.post-nav .next::after  { content: '→'; font-style: normal; }
+.post-nav .prev { gap: 8px; }
+.post-nav .prev:hover { gap: 14px; }
+.post-nav .next:hover  { gap: 14px; }
+
+/* ── Post page footer ── */
+.post-page footer {
+  padding-left: 80px;
+  padding-right: 80px;
+}
+
+/* ═══════════════════════════════════════════
+   MOBILE  (≤ 768px): nav springt nach oben
+═══════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* Sidebar wird zur Top-Bar */
+  aside {
+    position: sticky;
+    top: 0; left: 0;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 14px 20px;
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+    gap: 0;
+    z-index: 100;
+    /* Kein transform nötig – komplett neu positioniert */
+    transform: none !important;
+  }
+
+  /* Name links, Toggle rechts */
+  .s-name {
+    font-size: .95rem;
+    margin-bottom: 0;
+    flex: 1;
+  }
+  .s-role { display: none; }
+
+  /* Mobile Menu Toggle */
+  #mobile-toggle {
+    display: flex;
+    background: none; border: none; cursor: pointer;
+    padding: 6px; color: var(--mid);
+  }
+  #mobile-toggle:hover { color: var(--ink); }
+
+  /* Nav + contact: eingeklappt */
+  .nav-main-wrap {
+    width: 100%;
+    display: none;
+    padding-top: 12px;
+    border-top: 1px solid var(--rule);
+    margin-top: 12px;
+  }
+  body.mobile-open .nav-main-wrap { display: block; }
+
+  .nav-main > li > a { padding: 8px 0; }
+  .nav-toc { display: none !important; } /* TOC ausblenden auf mobile */
+
+  .s-contact {
+    flex-direction: row; flex-wrap: wrap;
+    gap: 12px 20px;
+    border-top: 1px solid var(--rule);
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+  .s-contact-lbl { display: none; }
+
+  /* Desktop-Elemente ausblenden */
+  #nav-toggle { display: none; }
+  #nav-open   { display: none !important; }
+
+  /* Main ohne linken Offset */
+  main {
+    margin-left: 0 !important;
+  }
+  #bar { left: 0 !important; }
+
+  /* Sections */
+  .sec, .sec-newsletter, .post-outer { padding-left: 24px; padding-right: 24px; }
+  .sec { padding-top: 52px; padding-bottom: 52px; }
+
+  /* Homepage anpassungen */
+  .sec-intro { grid-template-columns: 1fr; gap: 32px; }
+  .intro-portrait { max-width: 180px; order: -1; }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .sec-lake { padding: 32px 24px; }
+  .a-row { grid-template-columns: 44px 80px 1fr; gap: 12px; white-space: normal; }
+  .a-ttl { white-space: normal; }
+  footer { flex-direction: column; gap: 16px; align-items: flex-start; padding: 24px; }
+
+  /* Post page */
+  .post-wrap { padding: 40px 0 60px; }
+  .post-outer { padding-left: 24px; padding-right: 24px; }
+  .post-title { font-size: 1.55rem; }
+  .post-lead  { font-size: 1rem; }
+  .post-meta  { grid-template-columns: 90px 1fr; }
+  .post-page footer { padding-left: 24px; padding-right: 24px; }
+}
+
+/* Entry animation */
+@keyframes up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+.ri { animation:up .6s forwards; }
+.ri.d1 { animation-delay:.05s; }
+.ri.d2 { animation-delay:.15s; }
+
+</style>
+</head>
+<body>
+
+<div id="cur">
+  <svg viewBox="0 0 20 20" fill="none">
+    <path d="M2 18 L5 11 L15 1 C16 0 18.5 0 18.5 1.5 C20 3 20 5.5 18.5 7 L9 16.5 Z" fill="#18160f"/>
+    <path d="M15 1 L18.5 1.5 C20 3 20 5.5 18.5 7 L17 8.5 L13 4.5 Z" fill="rgba(255,255,255,.12)"/>
+    <circle cx="2.5" cy="17.5" r="1.3" fill="#2d5c3f"/>
+    <path d="M2 18 L1 20.5 Q2.2 21.3 3.4 20.5 Z" fill="#2d5c3f"/>
+  </svg>
+</div>
+<div id="bar"></div>
+
+<!-- Preview switcher -->
+<div class="page-switcher">
+  <button class="ps-btn active" onclick="showPage('home')">Homepage</button>
+  <button class="ps-btn" onclick="showPage('post')">Reportage</button>
+</div>
+
+<!-- ═══════════════════ SIDEBAR (shared) ═══════════════════ -->
+<!-- Re-open tab (desktop) -->
+<button id="nav-open" aria-label="Menü öffnen">
+  <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14">
+    <line x1="2" y1="4" x2="12" y2="4"/>
+    <line x1="2" y1="7" x2="12" y2="7"/>
+    <line x1="2" y1="10" x2="12" y2="10"/>
+  </svg>
+</button>
+
+<aside>
+  <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px;">
+    <a href="/" class="s-name">Michael<br>Schilliger</a>
+    <button id="nav-toggle" aria-label="Menü schliessen" style="background:none;border:none;cursor:none;padding:4px;margin-top:2px;color:var(--mid);transition:color .2s;flex-shrink:0;">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14">
+        <line x1="2" y1="2" x2="12" y2="12"/>
+        <line x1="12" y1="2" x2="2" y2="12"/>
+      </svg>
+    </button>
+    <!-- Mobile toggle (nur auf mobile sichtbar) -->
+    <button id="mobile-toggle" style="display:none;" aria-label="Navigation">
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" width="18" height="18">
+        <line x1="2" y1="4" x2="12" y2="4"/>
+        <line x1="2" y1="7" x2="12" y2="7"/>
+        <line x1="2" y1="10" x2="12" y2="10"/>
+      </svg>
+    </button>
+  </div>
+  <span class="s-role">Reporter · Zürich</span>
+
+  <!-- Nav items in a wrappable div for mobile collapse -->
+  <div class="nav-main-wrap">
+    <nav>
+      <ul class="nav-main">
+        <li class="active">
+          <a href="/" class="on">Startseite</a>
+          <ul class="nav-toc">
+            <li><a href="#intro" class="here">Über mich</a></li>
+            <li><a href="#reporter">Reporter</a></li>
+            <li><a href="#blog">Blog</a></li>
+            <li><a href="#auszeichnungen">Auszeichnungen</a></li>
+            <li><a href="#now">Now</a></li>
+          </ul>
+        </li>
+        <li><a href="/reporter">Reporter</a></li>
+        <li><a href="/blog">Blog</a></li>
+        <li><a href="/now">Now</a></li>
+        <li><a href="/moderation">Moderation &amp; Anfragen</a></li>
+        <li><a href="/bibliothek">Bibliothek</a></li>
+      </ul>
+    </nav>
+
+    <div class="s-contact">
+      <span class="s-contact-lbl">Kontakt</span>
+      <a href="/cdn-cgi/l/email-protection#e68e878a8a89a68b8f858e87838a95858e8f8a8a8f818394c8858e"><span class="__cf_email__" data-cfemail="7b131a1717143b161218131a1e17081813121717121c1e09551813">[email&#160;protected]</span></a>
+      <a href="#">Bluesky</a>
+      <a href="#">LinkedIn</a>
+    </div>
+  </div>
+</aside>
+
+
+<!-- ═══════════════════ PAGE: HOMEPAGE ═══════════════════ -->
+<div id="page-home" class="page visible">
+  <main>
+
+    <!-- INTRO -->
+    <section class="sec sec-intro" id="intro">
+      <div>
+        <div class="intro-body ri d1">
+          <p>Guten Tag,</p>
+          <p>Ich bin Michael Schilliger, ein Reporter aus der Schweiz. Ich begleite Menschen, schreibe über sie und die Fragen, die ihr Leben an uns richten.</p>
+          <p>Zuvor habe ich im Newsroom gearbeitet. Lange. Und gerne. Nichts ist wichtiger als gute Nachrichten.</p>
+          <p>2009 gründete ich ein Onlinemagazin. Es hat sich verwandelt, aber es lebt heute noch.</p>
+        </div>
+        <div class="intro-cta ri d2"><a href="/ueber-mich">Mehr über mich</a></div>
+      </div>
+      <img class="intro-portrait ri d1" src="passfoto-min-min.jpg" alt="Michael Schilliger">
+    </section>
+
+    <!-- PORTFOLIO -->
+    <section class="sec sec-portfolio" id="reporter">
+      <div class="eyebrow">Meine Arbeit</div>
+      <h2 class="sec-h">Reportagen</h2>
+      <div class="grid-4">
+        <div class="card"><div class="card-img"><img src="card1.png" alt="Bauern"><div class="card-face"><div class="c-pub">NZZ Wochenende</div></div></div><span class="c-ttl">Den Schweizer Bauern reicht's</span><p class="c-excerpt">Die Wut ist gross, der Protest wird lauter – eine Nacht auf dem Feld.</p><a href="#" class="c-read" onclick="showPage('post');return false;">Lesen</a></div>
+        <div class="card"><div class="card-img"><img src="card2.png" alt="Verhütung"><div class="card-face"><div class="c-pub">NZZ Folio</div></div></div><span class="c-ttl">Helden der Verhütung</span><p class="c-excerpt">Wie ein umstrittener Arzt Tausende behandelte und die Justiz ihn freisprach.</p><a href="#" class="c-read">Lesen</a></div>
+        <div class="card"><div class="card-img"><img src="card3.png" alt="Männer"><div class="card-face"><div class="c-pub">NZZ Folio</div></div></div><span class="c-ttl">Fokus: Junge Männer</span><p class="c-excerpt">Was ist los mit euch? Ein NZZ Folio über eine Generation zwischen Aufbruch und Orientierungslosigkeit.</p><a href="#" class="c-read">Lesen</a></div>
+        <div class="card"><div class="card-img"><img src="card4.png" alt="Peter Roth"><div class="card-face"><div class="c-pub">NZZ Wochenende</div></div></div><span class="c-ttl">Der Mann, der das Berner Oberland nicht ruhen lässt</span><p class="c-excerpt">Peter Roth hat das Berner Oberland aufgemischt.</p><a href="#" class="c-read">Lesen</a></div>
+        <div class="card"><div class="card-img"><div class="card-face"><div class="c-pub">NZZ Wochenende</div></div></div><span class="c-ttl">Wem gehört Südafrika?</span><p class="c-excerpt">Dreissig Jahre nach dem Ende der Apartheid: Wer profitiert, wer bleibt zurück?</p><a href="#" class="c-read">Lesen</a></div>
+        <div class="card"><div class="card-img"><div class="card-face"><div class="c-pub">Reportage</div></div></div><span class="c-ttl">Das Ende des Migros-Märchens</span><p class="c-excerpt">Wie der grösste Schweizer Konzern seinen Weg verlor.</p><a href="#" class="c-read">Lesen</a></div>
+        <div class="card"><div class="card-img"><div class="card-face"><div class="c-pub">Interview</div></div></div><span class="c-ttl">Ja, ich schäme mich</span><p class="c-excerpt">Ein Gespräch über Schuld, Versagen und die Frage, ob man damit leben kann.</p><a href="#" class="c-read">Lesen</a></div>
+        <div class="card"><div class="card-img"><div class="card-face"><div class="c-pub">NZZ Wochenende</div></div></div><span class="c-ttl">Würden Sie dieses Hotel kaufen?</span><p class="c-excerpt">Eine Ruine in den Alpen, ein Traum und viel zu viele offene Fragen.</p><a href="#" class="c-read">Lesen</a></div>
+      </div>
+      <a href="/reporter" class="more-link">Alle Reportagen</a>
+    </section>
+
+    <!-- BLOG -->
+    <section class="sec sec-blog" id="blog">
+      <div class="eyebrow">Aus dem Reporterblock</div>
+      <h2 class="sec-h">Blog</h2>
+      <div class="b-feat">
+        <span class="b-kicker">Reporterblock · 3. März 2026</span>
+        <a href="#" class="b-title">Warum ich drei Jahre für eine Geschichte brauche – und warum das gut ist</a>
+        <p class="b-excerpt">Manchmal fragt mich jemand, wie lange ich an einem Text arbeite. Die ehrliche Antwort ist: Ich weiss es oft nicht. Was ich weiss: Guter Journalismus braucht Zeit.</p>
+        <a href="#" class="b-cta">Weiterlesen</a>
+      </div>
+      <div class="b-list">
+        <div class="b-row"><a href="#" class="b-ttl">Der Salon im März: Über Mut und Feigheit</a><span class="b-dt">18. Feb. 2026</span></div>
+        <div class="b-row"><a href="#" class="b-ttl">Vibecoding: Was funktioniert, was nicht</a><span class="b-dt">5. Feb. 2026</span></div>
+        <div class="b-row"><a href="#" class="b-ttl">Über das Warten – und was Reporter dabei lernen</a><span class="b-dt">12. Jan. 2026</span></div>
+        <div class="b-row"><a href="#" class="b-ttl">Drei Bücher, die ich im Winter gelesen habe</a><span class="b-dt">4. Jan. 2026</span></div>
+      </div>
+      <a href="/blog" class="more-link">Alle Beiträge</a>
+    </section>
+
+    <!-- NEWSLETTER -->
+    <section class="sec sec-newsletter">
+      <div class="eyebrow">Newsletter</div>
+      <h2 class="nl-h">Aus dem Reporterblock</h2>
+      <p class="nl-sub">Neue Texte, Lektüreempfehlungen und gelegentliche Gedanken – direkt ins Postfach. Kein Spam, kein fester Rhythmus.</p>
+      <div class="nl-form">
+        <input class="nl-input" type="email" placeholder="deine@email.ch">
+        <button class="nl-btn">Abonnieren</button>
+      </div>
+      <span class="nl-note">Jederzeit abmeldbar. Keine Weitergabe an Dritte.</span>
+    </section>
+
+    <!-- NOW -->
+    <section class="sec sec-now" id="now">
+      <div class="eyebrow">Now</div>
+      <h2 class="now-h">Was ich<br>gerade lerne</h2>
+      <span class="now-yr">Stand 2025</span>
+      <div class="now-row"><div class="now-dash">—</div><div class="now-txt">Ich lese gerade viel zur <strong>Geschichte Europas</strong> um die Jahrhundertwende.</div></div>
+      <div class="now-row"><div class="now-dash">—</div><div class="now-txt">Ich habe mir vorgenommen endlich <strong>besser surfen</strong> zu lernen.</div></div>
+      <div class="now-row"><div class="now-dash">—</div><div class="now-txt">Zudem versuche ich mich wie viele an <strong>Vibecoding</strong>.</div></div>
+      <div class="now-row"><div class="now-dash">—</div><div class="now-txt">Und dann betreibe ich einen <strong>Salon</strong>, zu dem ich spannende Menschen einlade.</div></div>
+    </section>
+
+    <!-- AWARDS -->
+    <section class="sec sec-awards" id="auszeichnungen">
+      <div class="eyebrow">Auszeichnungen</div>
+      <h2 class="awards-h">Ausgezeichnet<br>&amp; nominiert</h2>
+      <div class="a-row"><div class="a-yr">2025</div><div class="a-st">Nominiert</div><div class="a-ttl">True Story Award – «Er war 19. Dann bekam er Krebs.»</div></div>
+      <div class="a-row"><div class="a-yr">2024</div><div class="a-st">Nominiert</div><div class="a-ttl">Deutscher Reporter:innenpreis – Kategorie Reportage</div></div>
+      <div class="a-row"><div class="a-yr">2023</div><div class="a-st w">Gewinner</div><div class="a-ttl">Deutscher Journalistenpreis – Schneekanonen retten die Welt nicht</div></div>
+      <div class="a-row"><div class="a-yr">2021</div><div class="a-st w">Gewinner</div><div class="a-ttl">Medienpreis des Schweizer Anwaltsverbandes – Monster oder Retter?</div></div>
+      <div class="a-row"><div class="a-yr">2019</div><div class="a-st w">Gewinner</div><div class="a-ttl">Real 21 Förderpreis – Wem gehört Südafrika?</div></div>
+    </section>
+
+    <footer>
+      <span class="f-name">Michael Schilliger, Zürich</span>
+      <div class="f-links">
+        <a href="#"><span class="__cf_email__" data-cfemail="771f161b1b18371a1e141f16121b04141f1e1b1b1e10120559141f">[email&#160;protected]</span></a>
+        <a href="#">Impressum</a>
+        <a href="#">© 2025</a>
+      </div>
+    </footer>
+
+  </main>
+</div><!-- /page-home -->
+
+
+<!-- ═══════════════════ PAGE: SINGLE REPORTAGE ═══════════════════ -->
+<div id="page-post" class="page post-page">
+  <main>
+
+    <div class="post-outer">
+      <div class="post-wrap">
+
+        <!-- Kicker / Rubrik -->
+        <span class="post-kicker">NZZ Wochenende · Reportage</span>
+
+        <!-- Titel -->
+        <h1 class="post-title">Der Rächer, der aus den Bergen kam</h1>
+
+        <!-- Lead -->
+        <p class="post-lead">Bauskandale erschüttern seit fünfzehn Jahren das Berner Oberland. Dahinter steckt immer derselbe Mann: Peter Roht. Sein Kampf hat ihn Heimat, Geld und Familie gekostet. Er tut das Richtige – aber aus den falschen Gründen.</p>
+
+        <!-- Metadaten -->
+        <div class="post-meta">
+          <span class="post-meta-label">Erschienen</span>
+          <span class="post-meta-value">1. Mai 2024</span>
+
+          <span class="post-meta-label">Publikation</span>
+          <span class="post-meta-value"><a href="#">NZZ Wochenende</a></span>
+
+          <span class="post-meta-label">Autor</span>
+          <span class="post-meta-value"><a href="#">Michael Schilliger</a></span>
+        </div>
+
+        <!-- Cover-Bild -->
+        <figure class="post-cover">
+          <img src="PeterRoth.png" alt="Cover NZZ Wochenende – Der Rächer, der aus den Bergen kam">
+          <figcaption>NZZ Wochenende, 1. Mai 2024. Foto: NZZ / Archiv</figcaption>
+        </figure>
+
+        <!-- Fliesstext -->
+        <div class="post-body">
+          <p>An einem Tag im Frühsommer 2022 sitzt Peter Roth, 56 Jahre alt, beinahe unsichtbare Haare, stechender Blick, im «Hirschen» in Matten. Matten ist ein Vorort von Interlaken. Hier wohnt Roth im Exil, seit er aus seiner Heimat Grindelwald «vertrieben worden ist».</p>
+
+          <p>Roth hat viel Papier dabei. Ein gefülltes Plastikmäppchen legt er als Erstes auf den Tisch, «die private Seite, alles hier drin, e truurigi Familiegschicht», aber darüber mag er nicht reden. Er ist hier, weil er in den Medien die nächste Bombe platzieren will.</p>
+
+          <p>Seit fünfzehn Jahren berichten nationale Medien über Bauskandale in Grindelwald. 2007 titelte die «NZZ am Sonntag»: «Ein Bergdorf im Baustreit» und «Unzulässige Bauten in Schutzzone», die «Sonntags-Zeitung» prangerte «systematische Verstösse» an, um kurz nachzulegen: «Chalet-Skandal weitet sich aus». Der «Beobachter» widmete Grindelwald eine Reportage unter dem Titel «Ein Dorf verkauft sich». Hinter all diesen Enthüllungen steckte immer ein und dieselbe Quelle: Peter Roth.</p>
+
+          <p>Jeder im Berner Oberland kennt Peter Roth: Einige finden ihn eine amüsante Kuriosität, vielen ist er ein Ärgernis.</p>
+
+          <p>Für die Restschweiz ist Peter Roth eine Art Winkelried, der das Berner Oberland vor seiner Selbstverschandelung bewahren will. Sein Engagement als ehrenamtlicher Landschaftsschützer hat ihm eine Nomination für den Prix Courage eingebracht. Darauf ist er stolz. «Peter Roth, Bausündenjäger», so stellt er sich jeweils vor.</p>
+
+          <figure>
+            <img src="000042290023.jpg" alt="Peter Roth im Gespräch">
+            <figcaption>Peter Roth, Bausündenjäger. Foto: Archiv</figcaption>
+          </figure>
+
+          <p>Aber wer ist dieser Mann wirklich? Die Reportage folgt ihm über Monate – in Gemeinderatssitzungen, zu Ortsterminen, in Archivkeller. Und sie stösst dabei auf Widersprüche, die der einfachen Heldengeschichte Risse geben.</p>
+
+          <p>Peter Roth hat recht. Aber er hat nicht die richtigen Gründe. Und das, so stellt sich heraus, macht einen Unterschied.</p>
+        </div>
+
+        <!-- Weiter / Zurück -->
+        <nav class="post-nav">
+          <a href="#" class="prev">Vorheriger Beitrag</a>
+          <a href="#" class="next">Nächster Beitrag</a>
+        </nav>
+
+      </div><!-- /post-wrap -->
+    </div><!-- /post-outer -->
+
+    <footer>
+      <span class="f-name">Michael Schilliger, Zürich</span>
+      <div class="f-links">
+        <a href="#"><span class="__cf_email__" data-cfemail="87efe6ebebe8c7eaeee4efe6e2ebf4e4efeeebebeee0e2f5a9e4ef">[email&#160;protected]</span></a>
+        <a href="#">Impressum</a>
+        <a href="#">© 2025</a>
+      </div>
+    </footer>
+
+  </main>
+</div><!-- /page-post -->
+
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ── Page switcher ──
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('visible'));
+  document.getElementById('page-' + id).classList.add('visible');
+  document.querySelectorAll('.ps-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i === 0 && id === 'home') || (i === 1 && id === 'post'));
+  });
+  window.scrollTo(0, 0);
+}
+
+// ── Sidebar desktop toggle ──
+document.getElementById('nav-toggle').addEventListener('click', () => {
+  document.body.classList.add('nav-closed');
+});
+document.getElementById('nav-open').addEventListener('click', () => {
+  document.body.classList.remove('nav-closed');
+});
+
+// ── Mobile nav toggle ──
+const mobileToggle = document.getElementById('mobile-toggle');
+mobileToggle.addEventListener('click', () => {
+  document.body.classList.toggle('mobile-open');
+});
+
+// ── Show mobile toggle button only on mobile ──
+function checkMobile() {
+  const isMobile = window.innerWidth <= 768;
+  mobileToggle.style.display = isMobile ? 'flex' : 'none';
+  document.getElementById('nav-toggle').style.display = isMobile ? 'none' : 'block';
+}
+checkMobile();
+window.addEventListener('resize', checkMobile);
+
+// ── Cursor ──
+const cur = document.getElementById('cur');
+document.addEventListener('mousemove', e => {
+  cur.style.left = e.clientX + 'px';
+  cur.style.top  = e.clientY + 'px';
+  document.body.classList.add('r');
+});
+document.addEventListener('mousedown', () => document.body.classList.add('d'));
+document.addEventListener('mouseup',   () => document.body.classList.remove('d'));
+
+// ── Progress bar ──
+window.addEventListener('scroll', () => {
+  document.getElementById('bar').style.transform =
+    `scaleX(${scrollY / (document.body.scrollHeight - innerHeight)})`;
+});
+
+// ── TOC highlight ──
+const sections = document.querySelectorAll('section[id]');
+const tocLinks  = document.queryS

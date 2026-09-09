@@ -1,0 +1,160 @@
+:root {
+  --ink: #1c2028;
+  --mid: #6e7a8a;
+  --light: #a8b4c0;
+  --paper: #eceef4;
+  --off: #e2ddd8;
+  --panel: #dde0e8;
+  --rule: rgba(28, 32, 40, 0.09);
+  --accent: #6a8da8;
+  --night: #1c2a38;
+  --nav: 228px;
+  --reportage-section-bg: #ddd7d2;
+  --reportage-archive-bg: #d2cbc4;
+  --reportage-single-bg: #e7e2dc;
+  --reportage-accent: #cc3d6a;
+  --blog-section-bg: #f4d8cc;
+  --blog-archive-bg: #edc4b3;
+  --blog-single-bg: #f8e7de;
+  --blog-accent: #d07c66;
+  --content-max: 1360px;
+  --content-pad: max(64px, calc((100vw - var(--content-max)) / 2));
+  --reporter-archive-max: 980px;
+  --blog-archive-max: 920px;
+  --mobile-h1-size: 1.55rem;
+  --mobile-section-title-size: 1.85rem;
+  --mobile-body-size: 1rem;
+  --mobile-meta-size: 0.62rem;
+
+  --display: "Roboto", sans-serif;
+  --body: "Lora", serif;
+  --sans: "IBM Plex Sans", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 18px;
+}
+
+body {
+  margin: 0;
+  font-family: var(--body);
+  color: var(--ink);
+  background: var(--paper);
+  line-height: 1.75;
+}
+
+body.has-sidebar {
+  cursor: none;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+#cur {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-3px, -22px);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+body.r #cur {
+  opacity: 1;
+}
+
+#cur svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.12s;
+}
+
+body.d #cur svg {
+  transform: rotate(-10deg) scale(0.85);
+}
+
+.site-footer {
+  background: var(--paper);
+  border-top: 1px solid var(--rule);
+  padding: 30px var(--content-pad);
+}
+
+.f-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.f-row + .f-row {
+  margin-top: 8px;
+}
+
+.f-name {
+  font-family: var(--display);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0c0c0c;
+}
+
+.f-row-2 a {
+  text-decoration: none;
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0c0c0c;
+}
+
+.f-row-3 a,
+.f-row-4 a,
+.f-copy,
+.f-sep {
+  font-family: var(--sans);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--mid);
+  text-decoration: none;
+}
+
+.f-sep {
+  opacity: 0.6;
+}
+
+@media (max-width: 768px) {
+  #cur {
+    display: none;
+  }
+
+  body.has-sidebar {
+    cursor: auto;
+  }
+
+  .site-footer {
+    padding: 24px;
+  }
+
+  .f-row-2 a {
+    font-size: 0.76rem;
+  }
+
+  .f-row-3 a,
+  .f-row-4 a,
+  .f-copy,
+  .f-sep {
+    font-size: 0.64rem;
+  }
+}

@@ -1,0 +1,725 @@
+/* Bibliothek: eigene "Welt" (nur auf /bibliothek geladen) */
+
+:root {
+  --lib-paper: #f3efe6;
+  --lib-ink: #141414;
+  --lib-muted: rgba(20, 20, 20, 0.65);
+  --lib-rule: rgba(20, 20, 20, 0.12);
+  --lib-accent: #1f4a3a;
+  --lib-card: rgba(255, 255, 255, 0.55);
+  --lib-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+body.bibliothek-world {
+  padding-top: 0 !important;
+}
+
+/* BUILD MARKER (bitte nach Fix wieder entfernen) */
+body.bibliothek-world::after {
+  content: "BUILD 2026-03-31 A";
+  position: fixed;
+  top: 6px;
+  right: 10px;
+  z-index: 99999;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: #c60000;
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+
+/* CRITICAL LAYOUT (oben halten, damit es garantiert greift) */
+.lib-grid {
+  display: grid !important;
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  align-items: end;
+}
+
+@media (max-width: 980px) {
+  .lib-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .lib-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Karte: robuste Höhe ohne aspect-ratio */
+.lib-item {
+  --lib-card-ratio: 150%;
+}
+
+.lib-item.is-podcast {
+  --lib-card-ratio: 100%;
+}
+
+.lib-card {
+  position: relative !important;
+  width: 100% !important;
+  padding-top: var(--lib-card-ratio) !important; /* 2/3 Cover, Podcast 1/1 */
+  overflow: hidden !important;
+  border-radius: 8px !important;
+  transform-style: preserve-3d;
+}
+
+.lib-face {
+  position: absolute !important;
+  inset: 0 !important;
+  overflow: hidden !important;
+}
+
+.lib-face-front {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  padding: 0 !important;
+}
+
+.lib-face-front img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.lib-play {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D'http%3A//www.w3.org/2000/svg'%20viewBox%3D'0%200%2024%2024'%3E%3Cg%20fill%3D'none'%20stroke%3D'rgba(255%2C255%2C255%2C0.92)'%20stroke-width%3D'1.8'%20stroke-linecap%3D'round'%20stroke-linejoin%3D'round'%3E%3Cpath%20d%3D'M5%2013V11a7%207%200%200%201%2014%200v2'/%3E%3Cpath%20d%3D'M5%2013a2%202%200%200%200%202%202h1v-6H7a2%202%200%200%200-2%202Z'/%3E%3Cpath%20d%3D'M19%2013a2%202%200%200%201-2%202h-1v-6h1a2%202%200%200%201%202%202Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 20px 20px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.lib-play::before {
+  content: none;
+}
+
+:root {
+  --lib-paper: #f3efe6;
+  --lib-ink: #141414;
+  --lib-muted: rgba(20, 20, 20, 0.65);
+  --lib-rule: rgba(20, 20, 20, 0.12);
+  --lib-accent: #1f4a3a;
+  --lib-card: rgba(255, 255, 255, 0.55);
+  --lib-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+.lib-page {
+  background: radial-gradient(1200px 900px at 20% 10%, rgba(31, 74, 58, 0.12), transparent 55%),
+    radial-gradient(900px 700px at 90% 35%, rgba(20, 20, 20, 0.06), transparent 60%),
+    var(--lib-paper);
+  color: var(--lib-ink);
+  min-height: 100vh;
+  padding: 24px 20px 80px;
+}
+
+.lib-shell {
+  width: 100%;
+  max-width: none;
+  margin: 0 auto;
+  padding: 0 100px;
+}
+
+@media (min-width: 981px) {
+  .lib-shell {
+    padding: 0 64px;
+  }
+}
+
+.lib-head {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin: 18px 0 26px;
+  text-align: center;
+}
+
+.lib-intro {
+  max-width: 760px;
+  margin: 0 auto;
+  color: rgba(20, 20, 20, 0.72);
+  font-family: "Zilla Slab", serif;
+  font-size: 1.06rem;
+  line-height: 1.55;
+}
+
+.lib-intro p {
+  margin: 0;
+}
+
+.lib-title {
+  margin: 0;
+  font-family: "Zilla Slab", serif;
+  font-weight: 700;
+  font-size: clamp(1.7rem, 2.6vw, 2.4rem);
+  line-height: 1.05;
+}
+
+.lib-sitehead {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  background: rgba(243, 239, 230, 0.94);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(20, 20, 20, 0.1);
+  padding: 0;
+  margin: 0;
+}
+
+.lib-topbar {
+  width: 100%;
+  padding: 0;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  margin: 0;
+}
+
+.lib-back {
+  text-decoration: none;
+  color: rgba(20, 20, 20, 0.85);
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding-left: 0;
+  margin: 0;
+  display: inline;
+}
+
+.lib-back:hover {
+  color: var(--lib-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.lib-filter-wrap {
+  margin: 0 0 26px;
+}
+
+.lib-filter {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+}
+
+.lib-subfilter-tags {
+  display: none !important;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(20, 20, 20, 0.1);
+}
+
+.lib-filter-wrap.is-collections-open .lib-subfilter-tags {
+  display: flex !important;
+}
+
+.lib-tag-btn {
+  border: 1px solid rgba(20, 20, 20, 0.2);
+  background: rgba(255, 255, 255, 0.35);
+  color: rgba(20, 20, 20, 0.82);
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.lib-tag-btn:hover {
+  border-color: rgba(31, 74, 58, 0.45);
+}
+
+.lib-tag-btn.is-active {
+  color: #ffffff;
+  background: rgba(31, 74, 58, 0.88);
+  border-color: rgba(31, 74, 58, 0.88);
+}
+
+.lib-tag-count {
+  font-size: 0.62em;
+  font-weight: 700;
+  vertical-align: super;
+  margin-left: 0.15em;
+  opacity: 0.85;
+}
+
+.lib-filter-btn {
+  border: 1px solid rgba(20, 20, 20, 0.18);
+  background: rgba(255, 255, 255, 0.28);
+  color: rgba(20, 20, 20, 0.75);
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.lib-filter-btn.is-active {
+  color: #ffffff;
+  background: rgba(31, 74, 58, 0.92);
+  border-color: rgba(31, 74, 58, 0.92);
+}
+
+.lib-actions {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(20, 20, 20, 0.32);
+}
+
+.lib-action-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 120px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.95);
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.lib-action-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.lib-item.is-menu .lib-actions {
+  display: flex;
+}
+
+.lib-item.is-menu .lib-face-front img {
+  opacity: 0.55;
+}
+
+.lib-year {
+  margin-top: 26px;
+}
+
+.lib-year-title {
+  margin: 0 0 12px;
+  font-family: "Zilla Slab", serif;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.lib-tag-page-heading {
+  margin: 0 0 12px;
+  font-family: "Zilla Slab", serif;
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.lib-tag-page-heading[hidden] {
+  display: none !important;
+}
+
+.lib-tag-description {
+  margin: 0 0 18px;
+  color: rgba(20, 20, 20, 0.7);
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.lib-tag-description[hidden] {
+  display: none !important;
+}
+
+.lib-tag-flat-wrap {
+  margin-top: 26px;
+}
+
+.lib-tag-flat-wrap[hidden] {
+  display: none !important;
+}
+
+.lib-grid {
+  display: grid !important;
+  grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+  gap: 12px;
+}
+
+.lib-item {
+  position: relative;
+  perspective: 900px;
+}
+
+.lib-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: auto;
+  padding-top: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lib-card::before {
+  display: none;
+  padding-top: 0;
+}
+
+.lib-item.is-open .lib-card {
+  transform: none;
+}
+
+.lib-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  transition: opacity 180ms ease;
+}
+
+.lib-face-front {
+  opacity: 1;
+}
+
+.lib-face-back {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lib-item.is-open .lib-face-front {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lib-item.is-open .lib-face-back {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.lib-face-front {
+  width: 100%;
+  padding: 0;
+  border: 1px solid rgba(20, 20, 20, 0.16);
+  background: rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  display: block;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.lib-face-front img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.lib-cover-missing {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(20, 20, 20, 0.08) 0px,
+    rgba(20, 20, 20, 0.08) 10px,
+    rgba(20, 20, 20, 0.04) 10px,
+    rgba(20, 20, 20, 0.04) 20px
+  );
+}
+
+.lib-face-front:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+  border-color: rgba(31, 74, 58, 0.45);
+}
+
+.lib-item.is-open .lib-face-front {
+  box-shadow: var(--lib-shadow);
+  border-color: rgba(31, 74, 58, 0.6);
+}
+
+.lib-face-back {
+  border: 1px solid var(--lib-rule);
+  background: var(--lib-card);
+  backdrop-filter: blur(6px);
+  padding: 10px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lib-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--lib-rule);
+}
+
+.lib-panel-head .lib-panel-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  font-family: "Zilla Slab", serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.25;
+}
+
+.lib-panel-title {
+  font-family: "Zilla Slab", serif;
+  font-weight: 700;
+  font-size: 1.02rem;
+  line-height: 1.2;
+}
+
+.lib-panel-author {
+  font-family: "Zilla Slab", serif;
+  font-size: 0.86rem;
+  line-height: 1.35;
+  color: rgba(20, 20, 20, 0.72);
+  margin: 0;
+}
+
+.lib-panel-rating {
+  margin-top: 6px;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--lib-ink);
+}
+
+/* Mobile expanded row behavior */
+.lib-mobile-row {
+  display: none;
+}
+
+
+.lib-close {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(20, 20, 20, 0.55);
+  font-size: 1.15rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 0 0 4px;
+  margin: -2px 0 0;
+  align-self: flex-start;
+}
+
+.lib-close:hover {
+  color: var(--lib-ink);
+}
+
+.lib-panel-body {
+  display: grid;
+  gap: 6px;
+  padding-top: 0;
+  overflow: auto;
+}
+
+.lib-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--lib-ink);
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lib-action::after {
+  content: "→";
+  color: var(--lib-accent);
+}
+
+.lib-meta {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.lib-meta-label {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--lib-muted);
+}
+
+.lib-meta-value {
+  font-family: "Zilla Slab", serif;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.lib-buy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lib-buy-link {
+  text-decoration: none;
+  color: var(--lib-ink);
+  border: 1px solid rgba(20, 20, 20, 0.18);
+  background: rgba(255, 255, 255, 0.4);
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.lib-buy-link:hover {
+  border-color: rgba(31, 74, 58, 0.55);
+}
+
+.lib-empty {
+  margin: 18px 0 0;
+  font-family: "Zilla Slab", serif;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 520px) {
+  .lib-page {
+    padding: 46px 16px 70px;
+  }
+
+  .lib-shell {
+    padding: 0 16px;
+  }
+
+  .lib-topbar {
+    height: 34px;
+  }
+
+  .lib-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .lib-meta {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 980px) {
+  .lib-shell {
+    padding: 0 32px;
+  }
+
+  .lib-topbar {
+    height: 34px;
+  }
+
+  .lib-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .lib-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .lib-item.is-open {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 12px;
+    align-items: start;
+  }
+
+  .lib-item.is-open .lib-card {
+    grid-column: 1;
+  }
+
+  /* Mobile: Cover bleibt sichtbar, Details rechts */
+  .lib-item.is-open .lib-face-front {
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  .lib-item.is-open .lib-face-back {
+    display: none !important;
+  }
+
+  .lib-mobile-row {
+    display: none;
+  }
+
+  .lib-item.is-open .lib-mobile-row {
+    display: block;
+    grid-column: 2;
+    padding-top: 2px;
+    font-family: "Zilla Slab", serif;
+  }
+
+  .lib-mobile-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    line-height: 1.2;
+  }
+
+  .lib-mobile-author {
+    margin-top: 4px;
+    color: rgba(20, 20, 20, 0.72);
+  }
+
+  .lib-mobile-link {
+    display: inline-block;
+    margin-top: 10px;
+    margin-right: 12px;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--lib-ink);
+    border-bottom: 1px solid rgba(31, 74, 58, 0.45);
+  }
+
+  .lib-actions {
+    display: none !important;
+  }
+}
+

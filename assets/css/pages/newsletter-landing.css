@@ -1,0 +1,423 @@
+/* Newsletter-Landing: eigenes Layout — body-padding-top der Topbar (sidebar.css) zurücknehmen */
+body.newsletter-landing-page {
+  --nl-pad-inline: clamp(18px, 4.5vw, 44px);
+  /* sidebar.css: body { padding-top: var(--topbar-h) } — hier ohne sichtbare Topbar */
+  padding-top: 0 !important;
+}
+
+.newsletter-landing-page .site-topbar {
+  display: none !important;
+}
+
+.newsletter-landing-page #cur,
+.newsletter-landing-page #bar {
+  display: none !important;
+}
+
+.nl-landing {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  min-height: 100dvh;
+}
+
+/* .sec / Komponenten: kein Fremd-Padding, kein Rand */
+.newsletter-landing-page .nl-landing-hero.sec {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  border-bottom: none !important;
+}
+
+.nl-landing-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: start;
+  min-height: 100dvh;
+  min-height: 100vh;
+}
+
+.nl-landing-nav {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.nl-landing-nav-link {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 8px var(--nl-pad-inline);
+  box-sizing: border-box;
+  text-align: center;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.82);
+  font-family: var(--sans);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  line-height: 1.25;
+}
+
+.nl-landing-nav-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.nl-landing-inner {
+  width: 100%;
+  max-width: 58rem;
+  margin: 0 auto;
+  padding: clamp(10px, 1.8vh, 18px) var(--nl-pad-inline) clamp(28px, 5vh, 52px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  text-align: left;
+}
+
+.nl-brand--landing {
+  align-self: center;
+  text-align: center;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto clamp(20px, 3.2vh, 32px);
+}
+
+.nl-brand--landing .nl-brand-title {
+  font-size: clamp(2.2rem, 5.2vw, 3.5rem);
+}
+
+.nl-brand--landing .nl-brand-tagline {
+  font-size: clamp(14px, 1.6vw, 17px);
+  margin-top: 6px;
+}
+
+@media (max-width: 768px) {
+  .nl-brand--landing .nl-brand-title {
+    font-size: clamp(1.35rem, 7.2vw, 1.85rem);
+  }
+
+  .nl-brand--landing .nl-brand-tagline {
+    font-size: clamp(11px, 3.1vw, 13px);
+    margin-top: 4px;
+  }
+}
+
+/* Text + Formular visuell zusammenhalten */
+.nl-landing-panel {
+  width: 100%;
+  max-width: 50rem;
+  margin: 0 auto;
+  padding: clamp(24px, 4.2vw, 40px) clamp(22px, 3.8vw, 36px);
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+  border-left: 3px solid rgba(255, 255, 255, 0.38);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(22px, 3.5vh, 32px);
+  align-items: stretch;
+}
+
+.nl-preview-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.86);
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nl-preview-link::after {
+  content: "→";
+  font-size: 0.95em;
+  opacity: 0.85;
+}
+
+.nl-preview-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+/* Variante B (clean/elegant + Akzent) — aktiv via ?nl_variant=b */
+.nl-landing--b {
+  /* Radikal editorial: hell, viel Luft, Akzent als feine Marke */
+  --nl-accent: #6a4cff; /* indigo-violet */
+  --nl-accent-soft: rgba(106, 76, 255, 0.12);
+  --nl-ink: #12151c;
+  --nl-muted: rgba(18, 21, 28, 0.62);
+}
+
+/* Variante B: kein Verlauf, kein Dark-Panel — heller Editorial-Look */
+.nl-landing--b .nl-landing-hero {
+  background: var(--paper);
+  color: var(--nl-ink);
+}
+
+.nl-landing--b .nl-landing-nav-link {
+  color: var(--nl-muted);
+  text-align: left;
+}
+
+.nl-landing--b .nl-landing-nav-link:hover {
+  color: var(--nl-ink);
+  text-decoration-color: var(--nl-accent);
+}
+
+.nl-landing--b .nl-landing-inner {
+  max-width: 1080px;
+  padding-top: clamp(18px, 3vh, 28px);
+  padding-bottom: clamp(34px, 6vh, 64px);
+  text-align: left;
+}
+
+.nl-landing--b .nl-brand--landing .nl-brand-title {
+  color: var(--nl-ink);
+  text-decoration-color: var(--nl-accent);
+}
+
+.nl-landing--b .nl-brand--landing .nl-brand-tagline {
+  color: var(--nl-muted);
+}
+
+/* Wrapper bleibt, aber ohne Panel-Look: als freies, asymmetrisches Grid */
+.nl-landing--b .nl-landing-panel {
+  max-width: 100%;
+  padding: 0;
+  margin: 0 auto;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+  gap: clamp(22px, 5vw, 72px);
+  align-items: start;
+}
+
+/* Radikaler: extrem feine "Klammer" / Rule als Akzent */
+.nl-landing--b .nl-landing-panel::before {
+  content: "";
+  grid-column: 1 / -1;
+  grid-row: 1;
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, rgba(106, 76, 255, 0.55), rgba(18, 21, 28, 0.12), rgba(18, 21, 28, 0));
+  margin: 0 0 clamp(18px, 3.2vh, 28px);
+}
+
+.nl-landing--b .nl-landing-copy {
+  color: var(--nl-ink);
+  max-width: 46rem;
+}
+
+.nl-landing--b .nl-landing-lead {
+  color: var(--nl-ink);
+  font-size: clamp(1.18rem, 1.75vw, 1.42rem);
+  line-height: 1.7;
+}
+
+.nl-landing--b .nl-landing-list {
+  color: rgba(18, 21, 28, 0.86);
+  font-size: clamp(1.06rem, 1.35vw, 1.18rem);
+  line-height: 1.7;
+}
+
+.nl-landing--b .nl-preview-link {
+  grid-column: 1;
+  border-color: rgba(18, 21, 28, 0.16);
+  background: transparent;
+  color: rgba(18, 21, 28, 0.76);
+  border-radius: 999px;
+}
+
+.nl-landing--b .nl-preview-link:hover {
+  border-color: rgba(106, 76, 255, 0.5);
+  color: var(--nl-ink);
+  background: rgba(106, 76, 255, 0.06);
+}
+
+.nl-landing--b .nl-landing-form-wrap {
+  grid-column: 2;
+  width: 100%;
+  position: sticky;
+  top: 16px;
+}
+
+.nl-landing--b .nl-landing-form-wrap .nl-input {
+  background: #ffffff;
+  border: 1px solid rgba(18, 21, 28, 0.18);
+  color: var(--nl-ink);
+}
+
+.nl-landing--b .nl-landing-form-wrap .nl-input::placeholder {
+  color: rgba(18, 21, 28, 0.42);
+}
+
+.nl-landing--b .nl-landing-form-wrap .nl-input:focus {
+  outline: 3px solid rgba(106, 76, 255, 0.18);
+  outline-offset: 2px;
+  border-color: rgba(106, 76, 255, 0.55);
+}
+
+.nl-landing--b .nl-landing-form-wrap .nl-btn {
+  background: var(--nl-accent);
+  color: #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(106, 76, 255, 0.18);
+}
+
+.nl-landing--b .nl-landing-form-wrap .nl-btn:hover {
+  filter: brightness(1.02);
+}
+
+.nl-landing--b .nl-landing-form-wrap .nl-feedback.is-success {
+  color: rgba(28, 32, 40, 0.7);
+}
+
+.nl-landing--b .nl-landing-form-wrap .nl-feedback.is-error {
+  color: rgba(170, 30, 45, 0.9);
+}
+
+@media (max-width: 900px) {
+  .nl-landing--b .nl-landing-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .nl-landing--b .nl-landing-panel::before {
+    margin-bottom: 18px;
+  }
+
+  .nl-landing--b .nl-landing-form-wrap {
+    grid-column: 1;
+    position: static;
+    top: auto;
+  }
+}
+
+.nl-landing-copy {
+  width: 100%;
+  margin: 0;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.94);
+}
+
+.nl-landing-lead {
+  margin: 0 0 1.05em;
+  font-family: var(--body);
+  font-size: clamp(1.12rem, 1.85vw, 1.35rem);
+  line-height: 1.68;
+}
+
+.nl-landing-list {
+  margin: 0;
+  padding: 0 0 0 1.2em;
+  font-family: var(--body);
+  font-size: clamp(1.04rem, 1.55vw, 1.2rem);
+  line-height: 1.62;
+}
+
+.nl-landing-list li {
+  margin: 0 0 0.62em;
+}
+
+.nl-landing-list li:last-child {
+  margin-bottom: 0;
+}
+
+.nl-landing-form-wrap {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  width: 100%;
+  max-width: none;
+}
+
+.nl-landing-form-wrap .row-form {
+  width: 100%;
+  display: flex;
+  justify-content: stretch;
+}
+
+.nl-landing-form-wrap .nl-form {
+  width: 100%;
+  max-width: none;
+}
+
+/* Mobile: Button unter Eingabefeld, volle Breite, kein horizontales Überlaufen */
+@media (max-width: 768px) {
+  .nl-landing-panel {
+    overflow-x: hidden;
+    padding-left: clamp(16px, 4vw, 22px);
+    padding-right: clamp(16px, 4vw, 22px);
+  }
+
+  .nl-landing-form-wrap .row-form {
+    min-width: 0;
+  }
+
+  .nl-landing-form-wrap .nl-form {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    gap: 10px;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .nl-landing-form-wrap .nl-input {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+    border-right: 1px solid #ffffff;
+    border-radius: 3px;
+    box-sizing: border-box;
+  }
+
+  .nl-landing-form-wrap .nl-btn {
+    width: 100%;
+    max-width: 100%;
+    flex: 0 0 auto;
+    border-radius: 3px;
+    box-sizing: border-box;
+  }
+}
+
+.nl-landing-form-wrap .nl-feedback {
+  margin-top: 14px;
+  text-align: left;
+}
+
+.nl-landing-form-wrap .nl-feedback.is-success {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.nl-landing-form-wrap .nl-feedback.is-error {
+  color: #f0c4c4;
+}
+
+.nl-landing-form-wrap .nl-success {
+  margin-top: 14px;
+  color: rgba(255, 255, 255, 0.92);
+  text-align: left;
+}
