@@ -96,21 +96,6 @@ add_action('wp_enqueue_scripts', function () {
 			true
 		);
 	}
-	$should_load_mailerlite_webforms = is_front_page() || is_page_template('page-newsletter.php');
-	if (! $should_load_mailerlite_webforms && is_singular()) {
-		$current_post_id = get_queried_object_id();
-		$current_content = $current_post_id ? (string) get_post_field('post_content', $current_post_id) : '';
-		$should_load_mailerlite_webforms = has_shortcode($current_content, 'newsletter_signup');
-	}
-	if ($should_load_mailerlite_webforms) {
-		wp_enqueue_script(
-			'schilliger-mailerlite-webforms',
-			'https://groot.mailerlite.com/js/w/webforms.min.js?v95037e5bac78f29ed026832ca21a7c7b',
-			[],
-			null,
-			true
-		);
-	}
 	if (is_singular() && comments_open() && get_option('thread_comments')) {
 		wp_enqueue_script('comment-reply');
 	}
@@ -118,7 +103,6 @@ add_action('wp_enqueue_scripts', function () {
 	wp_localize_script('schilliger-newsletter', 'schilligerNewsletter', [
 		'ajaxUrl' => admin_url('admin-ajax.php'),
 		'nonce' => wp_create_nonce('schilliger_newsletter_signup'),
-		'mailerliteTakelUrl' => 'https://assets.mailerlite.com/jsonp/2184895/forms/181751966978802783/takel',
 	]);
 
 	$palette = (string) get_theme_mod('schilliger_blog_palette', 'medium');
@@ -1344,8 +1328,36 @@ function schilliger_render_archive_content_page(): void {
 	<?php
 }
 
+function schilliger_newsletter_client_ip(): string {
+	$ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+	return preg_match('/^[0-9a-fA-F.:]+$/', $ip) ? $ip : '';
+}
+
 function schilliger_newsletter_signup(): void {
 	check_ajax_referer('schilliger_newsletter_signup', 'nonce');
+
+	// Honeypot: bots that fill hidden fields get a fake success, nothing is sent anywhere.
+	$honeypot = isset($_POST['hp']) ? sanitize_text_field(wp_unslash($_POST['hp'])) : '';
+	if ($honeypot) {
+		wp_send_json_success(['message' => __('Danke! Die Anmeldung ist eingegangen.', 'schilliger')]);
+	}
+
+	// Timing gate: the form carries its own render time, a real visitor needs at least a couple of seconds.
+	$rendered_at = isset($_POST['ts']) ? (int) $_POST['ts'] : 0;
+	if (! $rendered_at || (time() - $rendered_at) < 2) {
+		wp_send_json_success(['message' => __('Danke! Die Anmeldung ist eingegangen.', 'schilliger')]);
+	}
+
+	// Rate limit per IP so a script can't just keep hammering this endpoint.
+	$ip = schilliger_newsletter_client_ip();
+	if ($ip) {
+		$rate_key = 'schilliger_nl_rl_' . md5($ip);
+		$attempts = (int) get_transient($rate_key);
+		if ($attempts >= 5) {
+			wp_send_json_error(['message' => __('Zu viele Anmeldungen. Bitte spaeter erneut versuchen.', 'schilliger')], 429);
+		}
+		set_transient($rate_key, $attempts + 1, 10 * MINUTE_IN_SECONDS);
+	}
 
 	$email = '';
 	if (isset($_POST['email'])) {
@@ -1354,6 +1366,20 @@ function schilliger_newsletter_signup(): void {
 
 	if (! $email || ! is_email($email)) {
 		wp_send_json_error(['message' => __('Bitte eine gueltige E-Mail-Adresse eingeben.', 'schilliger')], 400);
+	}
+
+	$mailerlite_action = (string) get_theme_mod('schilliger_mailchimp_action', 'https://assets.mailerlite.com/jsonp/2184895/forms/181751966978802783/subscribe');
+	$mailerlite_response = wp_remote_post($mailerlite_action, [
+		'timeout' => 10,
+		'body' => [
+			'fields[email]' => $email,
+			'ml-submit' => '1',
+			'anticsrf' => 'true',
+		],
+	]);
+
+	if (is_wp_error($mailerlite_response) || (int) wp_remote_retrieve_response_code($mailerlite_response) >= 400) {
+		wp_send_json_error(['message' => __('Die Anmeldung ist fehlgeschlagen. Bitte spaeter erneut versuchen.', 'schilliger')], 502);
 	}
 
 	$recipient = get_theme_mod('schilliger_newsletter_recipient', get_option('admin_email'));
@@ -1365,11 +1391,7 @@ function schilliger_newsletter_signup(): void {
 	$subject = sprintf(__('Neue Newsletter-Anmeldung auf %s', 'schilliger'), wp_parse_url(home_url('/'), PHP_URL_HOST));
 	$body = "Neue Newsletter-Anmeldung:\n\n" . $email;
 	$headers = ['Content-Type: text/plain; charset=UTF-8'];
-
-	$sent = wp_mail($recipient, $subject, $body, $headers);
-	if (! $sent) {
-		wp_send_json_error(['message' => __('Die Anmeldung konnte nicht gespeichert werden. Bitte spaeter erneut versuchen.', 'schilliger')], 500);
-	}
+	wp_mail($recipient, $subject, $body, $headers);
 
 	wp_send_json_success(['message' => __('Danke! Die Anmeldung ist eingegangen.', 'schilliger')]);
 }
@@ -1380,9 +1402,6 @@ function schilliger_newsletter_signup_shortcode($atts = []): string {
 		'text' => (string) get_theme_mod('schilliger_newsletter_text', 'Neue Texte, Lektuereempfehlungen und gelegentliche Gedanken direkt ins Postfach.'),
 	], $atts, 'newsletter_signup');
 
-	$mailerlite_action = (string) get_theme_mod('schilliger_mailchimp_action', 'https://assets.mailerlite.com/jsonp/2184895/forms/181751966978802783/subscribe');
-	$target_id = function_exists('wp_unique_id') ? wp_unique_id('nl-mailerlite-target-') : ('nl-mailerlite-target-' . uniqid('', true));
-
 	ob_start();
 	?>
 	<div class="newsletter-embed nl-widget">
@@ -1390,24 +1409,16 @@ function schilliger_newsletter_signup_shortcode($atts = []): string {
 		<h3 class="newsletter-embed-title"><?php echo esc_html((string) $atts['title']); ?></h3>
 		<p class="newsletter-embed-text"><?php echo esc_html((string) $atts['text']); ?></p>
 		<div class="row-form">
-			<form
-				class="nl-form is-mailerlite ml-block-form"
-				method="post"
-				action="<?php echo esc_url($mailerlite_action); ?>"
-				target="<?php echo esc_attr($target_id); ?>"
-				novalidate
-			>
-				<input class="nl-input" type="email" name="fields[email]" placeholder="deine@email.ch" autocomplete="email" required>
+			<form class="nl-form is-ajax" method="post" novalidate>
+				<input class="nl-input" type="email" name="email" placeholder="deine@email.ch" autocomplete="email" required>
 				<button class="nl-btn primary" type="submit">Abonnieren</button>
-				<input type="hidden" name="ml-submit" value="1">
-				<input type="hidden" name="anticsrf" value="true">
+				<input type="hidden" name="ts" value="<?php echo esc_attr((string) time()); ?>">
 				<div style="display:none !important;" aria-hidden="true">
 					<input type="text" name="hp" tabindex="-1" autocomplete="off">
 				</div>
 			</form>
 		</div>
 		<div class="nl-success row-success" style="display:none;">Danke fuer deine Anmeldung!</div>
-		<iframe name="<?php echo esc_attr($target_id); ?>" title="MailerLite Submit" style="display:none;"></iframe>
 		<p class="nl-feedback" aria-live="polite"></p>
 		<span class="nl-note"><?php echo esc_html((string) get_theme_mod('schilliger_newsletter_note', 'Jederzeit abmeldbar. Keine Weitergabe an Dritte.')); ?></span>
 	</div>

@@ -53,30 +53,18 @@ if (! empty($preview_post)) {
 					<a class="nl-preview-link" href="<?php echo esc_url($preview_url); ?>">Preview lesen</a>
 				<?php endif; ?>
 
-				<?php
-				$mailerlite_action = (string) get_theme_mod('schilliger_mailchimp_action', 'https://assets.mailerlite.com/jsonp/2184895/forms/181751966978802783/subscribe');
-				$nl_iframe_name = function_exists('wp_unique_id') ? wp_unique_id('nl-mailerlite-target-') : ('nl-mailerlite-target-' . uniqid('', true));
-				?>
 				<div class="nl-widget nl-landing-form-wrap">
 					<div class="row-form">
-						<form
-							class="nl-form is-mailerlite ml-block-form"
-							method="post"
-							action="<?php echo esc_url($mailerlite_action); ?>"
-							target="<?php echo esc_attr($nl_iframe_name); ?>"
-							novalidate
-						>
-							<input class="nl-input" type="email" name="fields[email]" placeholder="deine@email.ch" autocomplete="email" required>
+						<form class="nl-form is-ajax" method="post" novalidate>
+							<input class="nl-input" type="email" name="email" placeholder="deine@email.ch" autocomplete="email" required>
 							<button class="nl-btn primary" type="submit">Abonnieren</button>
-							<input type="hidden" name="ml-submit" value="1">
-							<input type="hidden" name="anticsrf" value="true">
+							<input type="hidden" name="ts" value="<?php echo esc_attr((string) time()); ?>">
 							<div style="display:none !important;" aria-hidden="true">
 								<input type="text" name="hp" tabindex="-1" autocomplete="off">
 							</div>
 						</form>
 					</div>
 					<div class="nl-success row-success" style="display:none;">Danke fuer deine Anmeldung!</div>
-					<iframe name="<?php echo esc_attr($nl_iframe_name); ?>" title="MailerLite Submit" style="display:none;"></iframe>
 					<p class="nl-feedback" aria-live="polite"></p>
 				</div>
 			</div>

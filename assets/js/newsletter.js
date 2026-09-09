@@ -1,15 +1,6 @@
 (function () {
   if (typeof schilligerNewsletter === "undefined") return;
 
-  const pageLoadedAt = Date.now();
-  const MIN_SUBMIT_DELAY_MS = 2000;
-
-  const isLikelyBot = (form) => {
-    const honeypot = form.querySelector('input[name="hp"]');
-    if (honeypot && honeypot.value) return true;
-    return Date.now() - pageLoadedAt < MIN_SUBMIT_DELAY_MS;
-  };
-
   const setFeedback = (container, message, isError) => {
     const feedback = container.querySelector(".nl-feedback");
     if (!feedback) return;
@@ -18,114 +9,70 @@
     feedback.classList.toggle("is-success", !isError && Boolean(message));
   };
 
-  const mailerliteForms = Array.from(document.querySelectorAll(".nl-form.is-mailerlite"));
-  if (mailerliteForms.length) {
-    let activeMailerliteForm = null;
+  const showSuccess = (form, container) => {
+    const rowForm = container.querySelector(".row-form");
+    const rowSuccess = container.querySelector(".row-success");
+    if (rowSuccess) rowSuccess.style.display = "block";
+    if (rowForm) rowForm.style.display = "none";
+    setFeedback(container, "Danke fuer deine Anmeldung!", false);
+    form.reset();
+  };
 
-    mailerliteForms.forEach((mailerliteForm) => {
-      const container = mailerliteForm.closest(".nl-widget") || document;
-      const submitButton = mailerliteForm.querySelector(".nl-btn");
-      const rowForm = container.querySelector(".row-form");
-      const rowSuccess = container.querySelector(".row-success");
-      const targetName = mailerliteForm.getAttribute("target");
-      const targetFrame = targetName ? document.querySelector("iframe[name='" + targetName + "']") : null;
-      let submitted = false;
-      let isSuccess = false;
+  const forms = Array.from(document.querySelectorAll(".nl-form.is-ajax"));
 
-      const showSuccess = () => {
-        isSuccess = true;
-        if (rowSuccess) rowSuccess.style.display = "block";
-        if (rowForm) rowForm.style.display = "none";
-        setFeedback(container, "Danke fuer deine Anmeldung!", false);
-        mailerliteForm.reset();
-        if (submitButton) submitButton.disabled = false;
-      };
+  forms.forEach((form) => {
+    const container = form.closest(".nl-widget") || document;
+    const submitButton = form.querySelector(".nl-btn");
+    const pageLoadedAt = Date.now();
 
-      mailerliteForm.addEventListener("submit", (event) => {
-        if (isLikelyBot(mailerliteForm)) {
-          event.preventDefault();
-          showSuccess();
-          return;
-        }
-        submitted = true;
-        isSuccess = false;
-        activeMailerliteForm = showSuccess;
-        setFeedback(container, "", false);
-        if (submitButton) submitButton.disabled = true;
-      });
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      setFeedback(container, "", false);
 
-      if (targetFrame) {
-        targetFrame.addEventListener("load", () => {
-          if (submitted && !isSuccess) {
-            showSuccess();
-          }
+      const emailInput = form.querySelector("input[type='email']");
+      const email = emailInput ? emailInput.value.trim() : "";
+      if (!email) {
+        setFeedback(container, "Bitte eine gueltige E-Mail-Adresse eingeben.", true);
+        return;
+      }
+
+      const honeypot = form.querySelector('input[name="hp"]');
+      const isLikelyBot = (honeypot && honeypot.value) || Date.now() - pageLoadedAt < 2000;
+      if (isLikelyBot) {
+        showSuccess(form, container);
+        return;
+      }
+
+      if (submitButton) submitButton.disabled = true;
+
+      try {
+        const tsInput = form.querySelector('input[name="ts"]');
+        const body = new URLSearchParams();
+        body.append("action", "schilliger_newsletter_signup");
+        body.append("nonce", schilligerNewsletter.nonce);
+        body.append("email", email);
+        body.append("hp", honeypot ? honeypot.value : "");
+        body.append("ts", tsInput ? tsInput.value : "0");
+
+        const response = await fetch(schilligerNewsletter.ajaxUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          },
+          body: body.toString(),
         });
+
+        const payload = await response.json();
+        if (!response.ok || !payload.success) {
+          throw new Error(payload?.data?.message || "Die Anmeldung ist fehlgeschlagen.");
+        }
+
+        showSuccess(form, container);
+      } catch (error) {
+        setFeedback(container, error.message || "Die Anmeldung ist fehlgeschlagen.", true);
+      } finally {
+        if (submitButton) submitButton.disabled = false;
       }
     });
-
-    window.ml_webform_success_38377567 = function () {
-      if (typeof activeMailerliteForm === "function") {
-        activeMailerliteForm();
-      }
-    };
-
-    if (schilligerNewsletter.mailerliteTakelUrl) {
-      fetch(schilligerNewsletter.mailerliteTakelUrl).catch(() => {});
-    }
-
-    return;
-  }
-
-  const fallbackForm = document.querySelector(".nl-form.is-ajax");
-  if (!fallbackForm) return;
-  const fallbackContainer = fallbackForm.closest(".nl-widget") || document;
-
-  const submitButton = fallbackForm.querySelector(".nl-btn");
-
-  fallbackForm.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    setFeedback(fallbackContainer, "", false);
-
-    if (isLikelyBot(fallbackForm)) {
-      setFeedback(fallbackContainer, "Danke! Die Anmeldung ist eingegangen.", false);
-      fallbackForm.reset();
-      return;
-    }
-
-    const emailInput = fallbackForm.querySelector("input[type='email']");
-    const email = emailInput ? emailInput.value.trim() : "";
-    if (!email) {
-      setFeedback(fallbackContainer, "Bitte eine gueltige E-Mail-Adresse eingeben.", true);
-      return;
-    }
-
-    submitButton.disabled = true;
-
-    try {
-      const body = new URLSearchParams();
-      body.append("action", "schilliger_newsletter_signup");
-      body.append("nonce", schilligerNewsletter.nonce);
-      body.append("email", email);
-
-      const response = await fetch(schilligerNewsletter.ajaxUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        },
-        body: body.toString(),
-      });
-
-      const payload = await response.json();
-      if (!response.ok || !payload.success) {
-        throw new Error(payload?.data?.message || "Die Anmeldung ist fehlgeschlagen.");
-      }
-
-      setFeedback(fallbackContainer, payload.data?.message || "Danke! Die Anmeldung ist eingegangen.", false);
-      fallbackForm.reset();
-    } catch (error) {
-      setFeedback(fallbackContainer, error.message || "Die Anmeldung ist fehlgeschlagen.", true);
-    } finally {
-      submitButton.disabled = false;
-    }
   });
 })();
