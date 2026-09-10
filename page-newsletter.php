@@ -59,6 +59,7 @@ if (! empty($preview_post)) {
 							<input class="nl-input" type="email" name="email" placeholder="deine@email.ch" autocomplete="email" required>
 							<button class="nl-btn primary" type="submit">Abonnieren</button>
 							<input type="hidden" name="ts" value="<?php echo esc_attr((string) time()); ?>">
+				<div class="cf-turnstile" data-sitekey="<?php echo esc_attr(SCHILLIGER_TURNSTILE_SITE_KEY); ?>"></div>
 							<div style="display:none !important;" aria-hidden="true">
 								<input type="text" name="hp" tabindex="-1" autocomplete="off">
 							</div>

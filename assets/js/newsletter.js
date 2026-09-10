@@ -43,6 +43,13 @@
         return;
       }
 
+      const turnstileInput = form.querySelector('[name="cf-turnstile-response"]');
+      const turnstileToken = turnstileInput ? turnstileInput.value : "";
+      if (form.querySelector(".cf-turnstile") && !turnstileToken) {
+        setFeedback(container, "Sicherheitspruefung laeuft noch. Bitte kurz warten und erneut senden.", true);
+        return;
+      }
+
       if (submitButton) submitButton.disabled = true;
 
       try {
@@ -53,6 +60,7 @@
         body.append("email", email);
         body.append("hp", honeypot ? honeypot.value : "");
         body.append("ts", tsInput ? tsInput.value : "0");
+        body.append("cf-turnstile-response", turnstileToken);
 
         const response = await fetch(schilligerNewsletter.ajaxUrl, {
           method: "POST",
@@ -70,6 +78,13 @@
         showSuccess(form, container);
       } catch (error) {
         setFeedback(container, error.message || "Die Anmeldung ist fehlgeschlagen.", true);
+        if (window.turnstile && typeof window.turnstile.reset === "function") {
+          try {
+            window.turnstile.reset(form.querySelector(".cf-turnstile"));
+          } catch (resetError) {
+            // ignore
+          }
+        }
       } finally {
         if (submitButton) submitButton.disabled = false;
       }

@@ -9,6 +9,10 @@ if (! defined('SCHILLIGER_VERSION')) {
 	define('SCHILLIGER_VERSION', '1.0.0');
 }
 
+if (! defined('SCHILLIGER_TURNSTILE_SITE_KEY')) {
+	define('SCHILLIGER_TURNSTILE_SITE_KEY', '0x4AAAAAAEuu9D1gmm1X_8pR');
+}
+
 function schilliger_asset_version(string $relative_path): string {
 	$path = get_theme_file_path($relative_path);
 	if ($path && file_exists($path)) {
@@ -98,6 +102,24 @@ add_action('wp_enqueue_scripts', function () {
 	}
 	if (is_singular() && comments_open() && get_option('thread_comments')) {
 		wp_enqueue_script('comment-reply');
+	}
+
+	$has_newsletter_form = is_front_page() || is_page_template('page-newsletter.php');
+	if (! $has_newsletter_form && is_singular()) {
+		$current_post_id = get_queried_object_id();
+		$current_content = $current_post_id ? (string) get_post_field('post_content', $current_post_id) : '';
+		$has_newsletter_form = has_shortcode($current_content, 'newsletter_signup');
+	}
+	if ($has_newsletter_form) {
+		wp_enqueue_script(
+			'cloudflare-turnstile',
+			'https://challenges.cloudflare.com/turnstile/v0/api.js',
+			[],
+			null,
+			true
+		);
+		wp_script_add_data('cloudflare-turnstile', 'async', true);
+		wp_script_add_data('cloudflare-turnstile', 'defer', true);
 	}
 
 	wp_localize_script('schilliger-newsletter', 'schilligerNewsletter', [
@@ -1333,8 +1355,36 @@ function schilliger_newsletter_client_ip(): string {
 	return preg_match('/^[0-9a-fA-F.:]+$/', $ip) ? $ip : '';
 }
 
+function schilliger_verify_turnstile(string $token, string $remote_ip): bool {
+	if (! defined('SCHILLIGER_TURNSTILE_SECRET_KEY') || ! SCHILLIGER_TURNSTILE_SECRET_KEY) {
+		// Secret key not set up on the server yet - don't block real signups in the meantime.
+		return true;
+	}
+	if (! $token) {
+		return false;
+	}
+
+	$response = wp_remote_post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+		'timeout' => 8,
+		'body' => [
+			'secret' => SCHILLIGER_TURNSTILE_SECRET_KEY,
+			'response' => $token,
+			'remoteip' => $remote_ip,
+		],
+	]);
+
+	if (is_wp_error($response)) {
+		return false;
+	}
+
+	$body = json_decode((string) wp_remote_retrieve_body($response), true);
+	return is_array($body) && ! empty($body['success']);
+}
+
 function schilliger_newsletter_signup(): void {
 	check_ajax_referer('schilliger_newsletter_signup', 'nonce');
+
+	$ip = schilliger_newsletter_client_ip();
 
 	// Honeypot: bots that fill hidden fields get a fake success, nothing is sent anywhere.
 	$honeypot = isset($_POST['hp']) ? sanitize_text_field(wp_unslash($_POST['hp'])) : '';
@@ -1348,8 +1398,13 @@ function schilliger_newsletter_signup(): void {
 		wp_send_json_success(['message' => __('Danke! Die Anmeldung ist eingegangen.', 'schilliger')]);
 	}
 
+	// Cloudflare Turnstile: a real check, so a genuine visitor gets a real error and can retry.
+	$turnstile_token = isset($_POST['cf-turnstile-response']) ? sanitize_text_field(wp_unslash($_POST['cf-turnstile-response'])) : '';
+	if (! schilliger_verify_turnstile($turnstile_token, $ip)) {
+		wp_send_json_error(['message' => __('Sicherheitspruefung fehlgeschlagen. Bitte Seite neu laden und erneut versuchen.', 'schilliger')], 403);
+	}
+
 	// Rate limit per IP so a script can't just keep hammering this endpoint.
-	$ip = schilliger_newsletter_client_ip();
 	if ($ip) {
 		$rate_key = 'schilliger_nl_rl_' . md5($ip);
 		$attempts = (int) get_transient($rate_key);
@@ -1413,6 +1468,7 @@ function schilliger_newsletter_signup_shortcode($atts = []): string {
 				<input class="nl-input" type="email" name="email" placeholder="deine@email.ch" autocomplete="email" required>
 				<button class="nl-btn primary" type="submit">Abonnieren</button>
 				<input type="hidden" name="ts" value="<?php echo esc_attr((string) time()); ?>">
+				<div class="cf-turnstile" data-sitekey="<?php echo esc_attr(SCHILLIGER_TURNSTILE_SITE_KEY); ?>"></div>
 				<div style="display:none !important;" aria-hidden="true">
 					<input type="text" name="hp" tabindex="-1" autocomplete="off">
 				</div>
