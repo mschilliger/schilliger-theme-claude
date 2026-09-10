@@ -1,0 +1,12 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "schilliger/link-list",
+	"title": "Link-Liste",
+	"category": "media",
+	"icon": "list-view",
+	"description": "Kompakte Liste mehrerer Link-Empfehlungen mit Bild, Titel und eigenem Kommentar pro Eintrag.",
+	"textdomain": "schilliger",
+	"editorScript": "file:./index.js",
+	"style": "file:../../assets/css/blocks.css"
+}

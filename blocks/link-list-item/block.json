@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "schilliger/link-list-item",
+	"title": "Link-Listeneintrag",
+	"category": "media",
+	"icon": "admin-links",
+	"description": "Ein Eintrag in einer Link-Liste: kleines Bild, Titel, Quelle, eigener Kommentar.",
+	"textdomain": "schilliger",
+	"parent": ["schilliger/link-list"],
+	"attributes": {
+		"url": { "type": "string", "default": "" },
+		"title": { "type": "string", "default": "" },
+		"image": { "type": "string", "default": "" },
+		"siteName": { "type": "string", "default": "" },
+		"comment": {
+			"type": "string",
+			"source": "html",
+			"selector": ".schilliger-link-list-item-comment",
+			"default": ""
+		}
+	},
+	"editorScript": "file:./index.js"
+}

@@ -1434,6 +1434,120 @@ function schilliger_pinned_blog_posts(): array {
 	return array_values(array_unique(array_filter($ids)));
 }
 
+add_action('init', function () {
+	register_block_type(get_theme_file_path('/blocks/link-preview'));
+	register_block_type(get_theme_file_path('/blocks/link-list'));
+	register_block_type(get_theme_file_path('/blocks/link-list-item'));
+});
+
+function schilliger_fetch_link_preview_data(string $url): array {
+	$url = esc_url_raw($url);
+	$empty = ['title' => '', 'description' => '', 'image' => '', 'siteName' => '', 'url' => $url];
+
+	if (! $url) {
+		return $empty;
+	}
+
+	$cache_key = 'schilliger_lp_' . md5($url);
+	$cached = get_transient($cache_key);
+	if (is_array($cached)) {
+		return $cached;
+	}
+
+	$host = (string) wp_parse_url($url, PHP_URL_HOST);
+	$result = array_merge($empty, ['siteName' => $host]);
+
+	if (! wp_http_validate_url($url)) {
+		set_transient($cache_key, $result, DAY_IN_SECONDS);
+		return $result;
+	}
+
+	$response = wp_remote_get($url, [
+		'timeout' => 8,
+		'redirection' => 3,
+		'user-agent' => 'Mozilla/5.0 (compatible; SchilligerLinkPreview/1.0; +' . home_url('/') . ')',
+	]);
+
+	if (is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) >= 400) {
+		set_transient($cache_key, $result, HOUR_IN_SECONDS);
+		return $result;
+	}
+
+	$body = (string) wp_remote_retrieve_body($response);
+	if (! $body) {
+		set_transient($cache_key, $result, HOUR_IN_SECONDS);
+		return $result;
+	}
+
+	$body = mb_convert_encoding($body, 'HTML-ENTITIES', 'UTF-8');
+
+	libxml_use_internal_errors(true);
+	$dom = new DOMDocument();
+	$dom->loadHTML((string) $body);
+	libxml_use_internal_errors(false);
+
+	$xpath = new DOMXPath($dom);
+
+	$get_meta = function (string $expr) use ($xpath): string {
+		$nodes = $xpath->query($expr);
+		if ($nodes && $nodes->length > 0) {
+			return trim((string) $nodes->item(0)->getAttribute('content'));
+		}
+		return '';
+	};
+
+	$title = $get_meta('//meta[@property="og:title"]');
+	if (! $title) {
+		$title_nodes = $xpath->query('//title');
+		if ($title_nodes && $title_nodes->length > 0) {
+			$title = trim((string) $title_nodes->item(0)->textContent);
+		}
+	}
+
+	$description = $get_meta('//meta[@property="og:description"]');
+	if (! $description) {
+		$description = $get_meta('//meta[@name="description"]');
+	}
+
+	$image = $get_meta('//meta[@property="og:image"]');
+	if ($image) {
+		$image = (string) WP_Http::make_absolute_url($image, $url);
+	}
+
+	$site_name = $get_meta('//meta[@property="og:site_name"]');
+	if (! $site_name) {
+		$site_name = $host;
+	}
+
+	$result['title'] = wp_strip_all_tags($title);
+	$result['description'] = wp_strip_all_tags($description);
+	$result['image'] = $image;
+	$result['siteName'] = wp_strip_all_tags($site_name);
+
+	set_transient($cache_key, $result, 30 * DAY_IN_SECONDS);
+
+	return $result;
+}
+
+add_action('rest_api_init', function () {
+	register_rest_route('schilliger/v1', '/link-preview', [
+		'methods' => 'GET',
+		'callback' => function (WP_REST_Request $request) {
+			$url = (string) $request->get_param('url');
+			return rest_ensure_response(schilliger_fetch_link_preview_data($url));
+		},
+		'permission_callback' => function () {
+			return current_user_can('edit_posts');
+		},
+		'args' => [
+			'url' => [
+				'required' => true,
+				'type' => 'string',
+			],
+		],
+	]);
+});
+
 function schilliger_newsletter_client_ip(): string {
 	$ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
 	return preg_match('/^[0-9a-fA-F.:]+$/', $ip) ? $ip : '';
