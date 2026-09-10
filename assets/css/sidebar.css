@@ -284,28 +284,13 @@ body.admin-bar.header-variant-c #bar {
   top: 32px;
 }
 
-/* Variante C beim Wiedereinfahren nach dem Hochscrollen: kompakt wie D.
-   Ganz oben auf der Seite (kein .header-scroll-compact) bleibt C in voller Groesse. */
-body.header-scroll-compact .site-topbar.header-variant-c .topbar-inner {
-  min-height: 150px;
-  gap: 7px;
-}
-
-body.header-scroll-compact .site-topbar.header-variant-c .topbar-name-row {
-  padding-top: 5px;
-}
-
-body.header-scroll-compact .site-topbar.header-variant-c .s-name {
-  font-size: clamp(0.9rem, 2.4vw, 1.5rem);
-}
-
-body.header-scroll-compact .site-topbar.header-variant-c .nav-main a {
-  font-size: 0.656rem;
-}
-
-/* Header variant D: wie Variante C, aber kompakter (Name 60%, Nav 80%) */
+/* Header variant D: am Anfang / ganz oben exakt wie Variante C.
+   Erst body.header-scroll-compact (gesetzt ab 80px Scroll-Position,
+   siehe sidebar.js) schrumpft sie auf die kompakten Masse (Name 60%,
+   Nav 80%). Variante C selbst bleibt davon unberuehrt und ist immer
+   statisch in voller Groesse. */
 body.header-variant-d {
-  padding-top: 150px;
+  padding-top: 186px;
 }
 
 .site-topbar.header-variant-d {
@@ -314,9 +299,9 @@ body.header-variant-d {
 }
 
 .site-topbar.header-variant-d .topbar-inner {
-  min-height: 150px;
+  min-height: 186px;
   padding: 0 var(--content-pad) 12px;
-  gap: 7px;
+  gap: 12px;
 }
 
 .site-topbar.header-variant-d .topbar-ticker-row {
@@ -358,12 +343,12 @@ body.header-variant-d {
 }
 
 .site-topbar.header-variant-d .topbar-name-row {
-  padding-top: 5px;
+  padding-top: 8px;
 }
 
 .site-topbar.header-variant-d .s-name {
   color: var(--accent);
-  font-size: clamp(0.9rem, 2.4vw, 1.5rem);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -387,7 +372,7 @@ body.header-variant-d {
   border: 1px solid var(--accent);
   padding: 8px 12px;
   border-radius: 0;
-  font-size: 0.656rem;
+  font-size: 0.82rem;
   letter-spacing: 0.08em;
   text-transform: uppercase !important;
 }
@@ -405,7 +390,7 @@ body.header-variant-d #bar {
 }
 
 body.admin-bar.header-variant-d {
-  padding-top: 182px;
+  padding-top: 218px;
 }
 
 body.admin-bar .site-topbar.header-variant-d {
@@ -414,6 +399,24 @@ body.admin-bar .site-topbar.header-variant-d {
 
 body.admin-bar.header-variant-d #bar {
   top: 32px;
+}
+
+/* Kompakter Zustand von Variante D beim Wiedereinfahren nach dem Hochscrollen */
+body.header-scroll-compact .site-topbar.header-variant-d .topbar-inner {
+  min-height: 150px;
+  gap: 7px;
+}
+
+body.header-scroll-compact .site-topbar.header-variant-d .topbar-name-row {
+  padding-top: 5px;
+}
+
+body.header-scroll-compact .site-topbar.header-variant-d .s-name {
+  font-size: clamp(0.9rem, 2.4vw, 1.5rem);
+}
+
+body.header-scroll-compact .site-topbar.header-variant-d .nav-main a {
+  font-size: 0.656rem;
 }
 
 #mobile-toggle {
@@ -485,23 +488,14 @@ body.admin-bar #bar {
     letter-spacing: 0;
   }
 
-  body.header-scroll-compact .site-topbar.header-variant-c .topbar-inner {
-    min-height: 68px;
-    gap: 5px;
-  }
-
-  body.header-scroll-compact .site-topbar.header-variant-c .s-name {
-    font-size: 0.66rem;
-  }
-
   body.header-variant-d {
-    padding-top: 68px;
+    padding-top: 78px;
   }
 
   .site-topbar.header-variant-d .topbar-inner {
-    min-height: 68px;
+    min-height: 78px;
     padding: 8px 24px;
-    gap: 5px;
+    gap: 8px;
   }
 
   .site-topbar.header-variant-d .topbar-ticker-row {
@@ -509,9 +503,18 @@ body.admin-bar #bar {
   }
 
   .site-topbar.header-variant-d .s-name {
-    font-size: 0.66rem;
+    font-size: 1.1rem;
     text-transform: none;
     letter-spacing: 0;
+  }
+
+  body.header-scroll-compact .site-topbar.header-variant-d .topbar-inner {
+    min-height: 68px;
+    gap: 5px;
+  }
+
+  body.header-scroll-compact .site-topbar.header-variant-d .s-name {
+    font-size: 0.66rem;
   }
 
   #mobile-toggle {
