@@ -549,6 +549,17 @@ add_action('acf/init', function () {
 				'toolbar' => 'basic',
 				'media_upload' => 0,
 			],
+			[
+				'key' => 'field_pinned_blog_posts',
+				'label' => 'PINNED Blogbeitraege',
+				'name' => 'pinned_blog_posts',
+				'type' => 'post_object',
+				'instructions' => 'Bis zu 10 Beitraege. Reihenfolge per Drag & Drop bestimmt die Reihenfolge in der PINNED-Liste.',
+				'post_type' => ['post'],
+				'multiple' => 1,
+				'max' => 10,
+				'return_format' => 'id',
+			],
 		],
 		'location' => [
 			[
@@ -1255,6 +1266,13 @@ add_action('admin_init', function () {
 		'sanitize_callback' => 'absint',
 		'default' => 0,
 	]);
+	for ($i = 1; $i <= 10; $i++) {
+		register_setting('schilliger_archive_content_options', 'schilliger_pinned_post_' . $i, [
+			'type' => 'integer',
+			'sanitize_callback' => 'absint',
+			'default' => 0,
+		]);
+	}
 });
 
 function schilliger_render_archive_content_page(): void {
@@ -1273,6 +1291,17 @@ function schilliger_render_archive_content_page(): void {
 		'orderby' => 'date',
 		'order' => 'DESC',
 	]);
+	$pinned_post_choices = get_posts([
+		'post_type' => 'post',
+		'post_status' => 'publish',
+		'numberposts' => -1,
+		'orderby' => 'date',
+		'order' => 'DESC',
+	]);
+	$pinned_post_values = [];
+	for ($i = 1; $i <= 10; $i++) {
+		$pinned_post_values[$i] = (int) get_option('schilliger_pinned_post_' . $i, 0);
+	}
 	?>
 	<div class="wrap">
 		<h1>Archiv Inhalte</h1>
@@ -1344,11 +1373,45 @@ function schilliger_render_archive_content_page(): void {
 						</select>
 					</td>
 				</tr>
+					<?php for ($i = 1; $i <= 10; $i++) : ?>
+					<tr>
+						<th scope="row"><label for="schilliger_pinned_post_<?php echo esc_attr((string) $i); ?>">PINNED Beitrag <?php echo esc_html((string) $i); ?></label></th>
+						<td>
+							<select id="schilliger_pinned_post_<?php echo esc_attr((string) $i); ?>" name="schilliger_pinned_post_<?php echo esc_attr((string) $i); ?>">
+								<option value="0">— Keine Auswahl —</option>
+								<?php foreach ($pinned_post_choices as $choice) : ?>
+									<option value="<?php echo esc_attr((string) $choice->ID); ?>" <?php selected($pinned_post_values[$i], (int) $choice->ID); ?>>
+										<?php echo esc_html(get_the_title($choice)); ?>
+									</option>
+								<?php endforeach; ?>
+							</select>
+						</td>
+					</tr>
+					<?php endfor; ?>
 			</table>
 			<?php submit_button(); ?>
 		</form>
 	</div>
 	<?php
+}
+
+function schilliger_pinned_blog_posts(): array {
+	$ids = [];
+	if (function_exists('get_field')) {
+		$acf_ids = get_field('pinned_blog_posts', 'option');
+		if (is_array($acf_ids)) {
+			$ids = array_map('intval', $acf_ids);
+		}
+	}
+	if (! $ids) {
+		for ($i = 1; $i <= 10; $i++) {
+			$id = (int) get_option('schilliger_pinned_post_' . $i, 0);
+			if ($id) {
+				$ids[] = $id;
+			}
+		}
+	}
+	return array_values(array_unique(array_filter($ids)));
 }
 
 function schilliger_newsletter_client_ip(): string {

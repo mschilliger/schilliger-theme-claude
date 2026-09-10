@@ -170,6 +170,65 @@
   font-weight: 700;
 }
 
+.blog-pinned {
+  max-width: var(--blog-archive-max);
+  width: 100%;
+  margin: 0 0 48px;
+}
+
+.blog-pinned-title {
+  font-family: "Courier New", Courier, monospace;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: #0c0c0c;
+  margin: 0 0 14px;
+}
+
+.blog-pinned-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.blog-pinned-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: baseline;
+  gap: 24px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.blog-pinned-item-title {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 1rem;
+  color: #0c0c0c;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.blog-pinned-item-date {
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0c0c0c;
+  white-space: nowrap;
+}
+
+.blog-pinned-item-tag {
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  white-space: nowrap;
+  text-align: right;
+}
+
 .blog-index-list {
   display: flex;
   flex-direction: column;
@@ -179,8 +238,16 @@
 }
 
 .blog-index-item {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 32px;
   padding: 24px 0;
   border-bottom: 1px solid var(--rule);
+}
+
+.blog-index-item-meta {
+  display: flex;
+  flex-direction: column;
 }
 
 .blog-index-date {
@@ -192,7 +259,7 @@
 }
 
 .blog-index-item-title {
-  margin: 8px 0;
+  margin: 0 0 8px;
   font-family: "Courier New", Courier, monospace;
   font-size: 1.3rem;
 }
@@ -245,5 +312,24 @@
   .reporter-shell,
   .blog-shell {
     padding: 52px 24px 52px;
+  }
+
+  .blog-pinned-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    align-items: start;
+  }
+
+  .blog-pinned-item-title {
+    white-space: normal;
+  }
+
+  .blog-pinned-item-tag {
+    text-align: left;
+  }
+
+  .blog-index-item {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 }
