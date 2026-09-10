@@ -612,7 +612,13 @@
 
 .nl-form {
   display: flex;
+  flex-wrap: wrap;
   max-width: 480px;
+}
+
+.cf-turnstile {
+  flex: 1 0 100%;
+  margin-top: 10px;
 }
 
 .nl-input {
