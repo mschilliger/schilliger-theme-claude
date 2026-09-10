@@ -1450,6 +1450,11 @@ function schilliger_newsletter_signup(): void {
 
 	$ip = schilliger_newsletter_client_ip();
 
+	$email = '';
+	if (isset($_POST['email'])) {
+		$email = sanitize_email(wp_unslash($_POST['email']));
+	}
+
 	// Honeypot: bots that fill hidden fields get a fake success, nothing is sent anywhere.
 	$honeypot = isset($_POST['hp']) ? sanitize_text_field(wp_unslash($_POST['hp'])) : '';
 	if ($honeypot) {
@@ -1459,6 +1464,13 @@ function schilliger_newsletter_signup(): void {
 	// Timing gate: the form carries its own render time, a real visitor needs at least a couple of seconds.
 	$rendered_at = isset($_POST['ts']) ? (int) $_POST['ts'] : 0;
 	if (! $rendered_at || (time() - $rendered_at) < 2) {
+		wp_send_json_success(['message' => __('Danke! Die Anmeldung ist eingegangen.', 'schilliger')]);
+	}
+
+	// Bekanntes "Subscription Bombing"-Muster: fremde, echte Adressen mit einem
+	// +km<hex><ziffern>-Tag direkt vor dem @ (z.B. tracyj+km41e7873701791@...).
+	// Kein echter Mensch tippt das von Hand, kommt nachweislich von einem Bot.
+	if ($email && preg_match('/\+km[0-9a-f]{6,}\d{3,}@/i', $email)) {
 		wp_send_json_success(['message' => __('Danke! Die Anmeldung ist eingegangen.', 'schilliger')]);
 	}
 
@@ -1476,11 +1488,6 @@ function schilliger_newsletter_signup(): void {
 			wp_send_json_error(['message' => __('Zu viele Anmeldungen. Bitte spaeter erneut versuchen.', 'schilliger')], 429);
 		}
 		set_transient($rate_key, $attempts + 1, 10 * MINUTE_IN_SECONDS);
-	}
-
-	$email = '';
-	if (isset($_POST['email'])) {
-		$email = sanitize_email(wp_unslash($_POST['email']));
 	}
 
 	if (! $email || ! is_email($email)) {
