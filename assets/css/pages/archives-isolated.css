@@ -277,20 +277,48 @@ html:has(.blog-page) {
 .blog-index-next-link {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 8px;
   width: 26px;
   height: 26px;
   margin-top: 14px;
+  padding: 0 6px;
   border: 1px solid var(--rule);
-  border-radius: 50%;
+  border-radius: 13px;
   color: #0c0c0c;
   text-decoration: none;
-  transition: border-color 0.2s ease, color 0.2s ease;
+  overflow: hidden;
+  white-space: nowrap;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, color 0.2s ease, width 0.25s ease, padding 0.25s ease;
 }
 
-.blog-index-next-link:hover {
+.blog-index-next-link svg {
+  flex: 0 0 auto;
+}
+
+.blog-index-next-link-text {
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  transition: opacity 0.2s ease, max-width 0.25s ease;
+}
+
+.blog-index-next-link:hover,
+.blog-index-next-link:focus-visible {
   border-color: var(--accent);
   color: var(--accent);
+  width: auto;
+  padding: 0 10px;
+}
+
+.blog-index-next-link:hover .blog-index-next-link-text,
+.blog-index-next-link:focus-visible .blog-index-next-link-text {
+  opacity: 1;
+  max-width: 160px;
 }
 
 .blog-index-content {
