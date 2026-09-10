@@ -45,22 +45,28 @@ if ($pinned_ids) {
 
 		<h1 class="blog-title">Blog</h1>
 		<?php if (have_posts()) : ?>
+			<?php
+			global $wp_query;
+			$blog_index_position = 0;
+			$blog_index_total = $wp_query->post_count;
+			?>
 			<div class="blog-index-list">
 				<?php while (have_posts()) : the_post(); ?>
-					<article class="blog-index-item">
+					<?php $blog_index_position++; ?>
+					<article class="blog-index-item" id="blog-post-<?php echo esc_attr((string) $blog_index_position); ?>">
 						<div class="blog-index-item-meta">
 							<h2 class="blog-index-item-title"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
 							<time class="blog-index-date" datetime="<?php echo esc_attr(get_the_date('c')); ?>"><?php echo esc_html(get_the_date('j. M Y')); ?></time>
+							<?php if ($blog_index_position < $blog_index_total) : ?>
+								<a class="blog-index-next-link" href="#blog-post-<?php echo esc_attr((string) ($blog_index_position + 1)); ?>" aria-label="Zum naechsten Artikel springen">
+									<svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+										<path d="M8 2v10M8 12l-4-4M8 12l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+									</svg>
+								</a>
+							<?php endif; ?>
 						</div>
-						<div class="blog-index-excerpt">
-							<?php
-							$formatted_excerpt = schilliger_formatted_archive_excerpt(get_the_ID(), 3);
-							if ($formatted_excerpt) {
-								echo wp_kses_post($formatted_excerpt);
-							} else {
-								echo wp_kses_post(wpautop(get_the_excerpt()));
-							}
-							?>
+						<div class="blog-index-content">
+							<?php the_content(); ?>
 						</div>
 					</article>
 				<?php endwhile; ?>
