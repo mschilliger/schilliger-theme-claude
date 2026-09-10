@@ -157,6 +157,10 @@ add_action('wp_enqueue_scripts', function () {
 	if (! $lightbox_bg || ! preg_match('/^#[0-9a-fA-F]{6}$/', $lightbox_bg)) {
 		$lightbox_bg = '#000000';
 	}
+	$blog_bg_color = (string) get_theme_mod('schilliger_blog_bg_color', $active['archive']);
+	if (! $blog_bg_color || ! preg_match('/^#[0-9a-fA-F]{6}$/', $blog_bg_color)) {
+		$blog_bg_color = $active['archive'];
+	}
 
 	$archive_width_variant = (string) get_theme_mod('schilliger_archive_width_variant', 'b');
 	$archive_widths = [
@@ -170,7 +174,7 @@ add_action('wp_enqueue_scripts', function () {
 		. '--accent:' . esc_attr($accent_color) . ';'
 		. '--reportage-accent:' . esc_attr($accent_color) . ';'
 		. '--blog-section-bg:' . esc_attr($active['section']) . ';'
-		. '--blog-archive-bg:' . esc_attr($active['archive']) . ';'
+		. '--blog-archive-bg:' . esc_attr($blog_bg_color) . ';'
 		. '--blog-single-bg:' . esc_attr($active['single']) . ';'
 		. '--blog-accent:' . esc_attr($active['accent']) . ';'
 		. '--lightbox-bg:' . esc_attr($lightbox_bg) . ';'
@@ -897,6 +901,22 @@ add_action('customize_register', function (WP_Customize_Manager $wp_customize) {
 			'strong' => __('Kraeftig', 'schilliger'),
 		],
 	]);
+
+	$wp_customize->add_setting('schilliger_blog_bg_color', [
+		'type' => 'theme_mod',
+		'sanitize_callback' => 'sanitize_hex_color',
+		'default' => '#edc4b3',
+	]);
+	$wp_customize->add_control(new WP_Customize_Color_Control(
+		$wp_customize,
+		'schilliger_blog_bg_color',
+		[
+			'label' => __('Hintergrundfarbe Blogübersicht', 'schilliger'),
+			'description' => __('Hintergrund der Blog-Archivseite (/blog). Ueberschreibt den Blog-Lachsfarbton nur fuer diese Seite.', 'schilliger'),
+			'section' => 'schilliger_design',
+			'settings' => 'schilliger_blog_bg_color',
+		]
+	));
 
 	$wp_customize->add_setting('schilliger_accent_color', [
 		'type' => 'theme_mod',
