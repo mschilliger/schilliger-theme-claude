@@ -35,6 +35,7 @@
       } else if (delta > 6) {
         document.body.classList.add("nav-hidden");
       }
+      document.body.classList.toggle("header-scroll-compact", currentY > 80);
       lastY = currentY;
       ticking = false;
     });

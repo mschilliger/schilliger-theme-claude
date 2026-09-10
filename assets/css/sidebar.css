@@ -284,6 +284,25 @@ body.admin-bar.header-variant-c #bar {
   top: 32px;
 }
 
+/* Variante C beim Wiedereinfahren nach dem Hochscrollen: kompakt wie D.
+   Ganz oben auf der Seite (kein .header-scroll-compact) bleibt C in voller Groesse. */
+body.header-scroll-compact .site-topbar.header-variant-c .topbar-inner {
+  min-height: 150px;
+  gap: 7px;
+}
+
+body.header-scroll-compact .site-topbar.header-variant-c .topbar-name-row {
+  padding-top: 5px;
+}
+
+body.header-scroll-compact .site-topbar.header-variant-c .s-name {
+  font-size: clamp(0.9rem, 2.4vw, 1.5rem);
+}
+
+body.header-scroll-compact .site-topbar.header-variant-c .nav-main a {
+  font-size: 0.656rem;
+}
+
 /* Header variant D: wie Variante C, aber kompakter (Name 60%, Nav 80%) */
 body.header-variant-d {
   padding-top: 150px;
@@ -464,6 +483,15 @@ body.admin-bar #bar {
     font-size: 1.1rem;
     text-transform: none;
     letter-spacing: 0;
+  }
+
+  body.header-scroll-compact .site-topbar.header-variant-c .topbar-inner {
+    min-height: 68px;
+    gap: 5px;
+  }
+
+  body.header-scroll-compact .site-topbar.header-variant-c .s-name {
+    font-size: 0.66rem;
   }
 
   body.header-variant-d {
