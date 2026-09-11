@@ -383,6 +383,10 @@ body.blog-overview-box-white .blog-index-list {
   color: inherit;
 }
 
+.blog-index-content img.has-lightbox {
+  cursor: zoom-in;
+}
+
 .blog-pagination {
   max-width: var(--blog-archive-max);
   margin-left: 0;

@@ -82,7 +82,7 @@ add_action('wp_enqueue_scripts', function () {
 			true
 		);
 	}
-	if (is_singular('post')) {
+	if (is_singular('post') || is_home()) {
 		wp_enqueue_script(
 			'schilliger-post-lightbox',
 			get_theme_file_uri('/assets/js/post-lightbox.js'),
