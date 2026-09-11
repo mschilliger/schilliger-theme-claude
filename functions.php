@@ -918,6 +918,24 @@ add_action('customize_register', function (WP_Customize_Manager $wp_customize) {
 		]
 	));
 
+	$wp_customize->add_setting('schilliger_blog_overview_style', [
+		'type' => 'theme_mod',
+		'sanitize_callback' => function ($value) {
+			$allowed = ['standard', 'box-white'];
+			return in_array($value, $allowed, true) ? $value : 'standard';
+		},
+		'default' => 'standard',
+	]);
+	$wp_customize->add_control('schilliger_blog_overview_style', [
+		'label' => __('Blogübersicht Stil', 'schilliger'),
+		'section' => 'schilliger_design',
+		'type' => 'select',
+		'choices' => [
+			'standard' => __('Standard', 'schilliger'),
+			'box-white' => __('Box White', 'schilliger'),
+		],
+	]);
+
 	$wp_customize->add_setting('schilliger_accent_color', [
 		'type' => 'theme_mod',
 		'sanitize_callback' => 'sanitize_hex_color',
@@ -1053,6 +1071,10 @@ add_filter('body_class', function (array $classes): array {
 	}
 	if (is_page('bibliothek')) {
 		$classes[] = 'bibliothek-world';
+	}
+	$blog_overview_style = (string) get_theme_mod('schilliger_blog_overview_style', 'standard');
+	if ('box-white' === $blog_overview_style) {
+		$classes[] = 'blog-overview-box-white';
 	}
 	return $classes;
 });

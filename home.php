@@ -57,14 +57,29 @@ if ($pinned_ids) {
 						<div class="blog-index-item-meta">
 							<h2 class="blog-index-item-title"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h2>
 							<time class="blog-index-date" datetime="<?php echo esc_attr(get_the_date('c')); ?>"><?php echo esc_html(get_the_date('j. M Y')); ?></time>
-							<?php if ($blog_index_position < $blog_index_total) : ?>
-								<a class="blog-index-next-link" href="#blog-post-<?php echo esc_attr((string) ($blog_index_position + 1)); ?>" aria-label="Zum naechsten Artikel springen">
+							<div class="blog-index-actions">
+								<?php if ($blog_index_position < $blog_index_total) : ?>
+									<a class="blog-index-icon-link blog-index-next-link" href="#blog-post-<?php echo esc_attr((string) ($blog_index_position + 1)); ?>" aria-label="Zum naechsten Artikel springen">
+										<svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
+											<path d="M8 2v10M8 12l-4-4M8 12l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+										</svg>
+										<span class="blog-index-icon-link-text" aria-hidden="true">Zum n&auml;chsten Artikel</span>
+									</a>
+								<?php endif; ?>
+								<button
+									type="button"
+									class="blog-index-icon-link blog-index-share-link"
+									aria-label="Artikel teilen"
+									data-share-title="<?php echo esc_attr(html_entity_decode((string) get_the_title(), ENT_QUOTES, get_bloginfo('charset'))); ?>"
+									data-share-url="<?php echo esc_url(get_permalink()); ?>"
+								>
 									<svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
-										<path d="M8 2v10M8 12l-4-4M8 12l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+										<path d="M8 1v8M8 1L5 4M8 1l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+										<path d="M3 8v5a1 1 0 001 1h8a1 1 0 001-1V8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
 									</svg>
-									<span class="blog-index-next-link-text" aria-hidden="true">Zum n&auml;chsten Artikel</span>
-								</a>
-							<?php endif; ?>
+									<span class="blog-index-icon-link-text" aria-hidden="true">Artikel teilen</span>
+								</button>
+							</div>
 						</div>
 						<div class="blog-index-content">
 							<?php the_content(); ?>
@@ -78,4 +93,24 @@ if ($pinned_ids) {
 		<?php endif; ?>
 	</section>
 </main>
+<script>
+  (function () {
+    var buttons = document.querySelectorAll(".blog-index-share-link");
+    if (!buttons.length) return;
+    if (!navigator.share) {
+      buttons.forEach(function (button) {
+        button.style.display = "none";
+      });
+      return;
+    }
+    buttons.forEach(function (button) {
+      button.addEventListener("click", function () {
+        navigator.share({
+          title: button.getAttribute("data-share-title") || document.title,
+          url: button.getAttribute("data-share-url") || window.location.href
+        }).catch(function () {});
+      });
+    });
+  })();
+</script>
 <?php get_footer(); ?>

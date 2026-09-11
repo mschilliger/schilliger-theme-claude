@@ -200,7 +200,7 @@ html:has(.blog-page) {
   grid-template-columns: 1fr auto auto;
   align-items: baseline;
   gap: 24px;
-  padding: 12px 0;
+  padding: 2px 0;
   border-bottom: 1px solid var(--rule);
 }
 
@@ -241,6 +241,17 @@ html:has(.blog-page) {
   width: 100%;
 }
 
+/* Blogübersicht-Stil "Box White" (Customizer: Design -> Blogübersicht Stil) */
+body.blog-overview-box-white .blog-title {
+  margin: 0;
+}
+
+body.blog-overview-box-white .blog-index-list {
+  padding-left: 15px;
+  padding-right: 15px;
+  background-color: #f7f7fb;
+}
+
 .blog-index-item {
   display: grid;
   grid-template-columns: 1fr 2fr;
@@ -274,29 +285,42 @@ html:has(.blog-page) {
   text-decoration: none;
 }
 
-.blog-index-next-link {
+.blog-index-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.blog-index-icon-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   width: 26px;
   height: 26px;
-  margin-top: 14px;
   padding: 0 6px;
   border: 1px solid var(--rule);
   border-radius: 13px;
+  background: #ffffff;
   color: #0c0c0c;
   text-decoration: none;
   overflow: hidden;
   white-space: nowrap;
   box-sizing: border-box;
-  transition: border-color 0.2s ease, color 0.2s ease, width 0.25s ease, padding 0.25s ease;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  z-index: 1;
+  transition: border-color 0.2s ease, color 0.2s ease, width 0.25s ease, padding 0.25s ease, transform 0.25s ease, opacity 0.2s ease;
 }
 
-.blog-index-next-link svg {
+.blog-index-icon-link svg {
   flex: 0 0 auto;
 }
 
-.blog-index-next-link-text {
+.blog-index-icon-link-text {
   font-family: var(--sans);
   font-size: 0.62rem;
   letter-spacing: 0.06em;
@@ -307,18 +331,35 @@ html:has(.blog-page) {
   transition: opacity 0.2s ease, max-width 0.25s ease;
 }
 
-.blog-index-next-link:hover,
-.blog-index-next-link:focus-visible {
+.blog-index-icon-link:hover,
+.blog-index-icon-link:focus-visible {
   border-color: var(--accent);
   color: var(--accent);
   width: auto;
   padding: 0 10px;
 }
 
-.blog-index-next-link:hover .blog-index-next-link-text,
-.blog-index-next-link:focus-visible .blog-index-next-link-text {
+.blog-index-icon-link:hover .blog-index-icon-link-text,
+.blog-index-icon-link:focus-visible .blog-index-icon-link-text {
   opacity: 1;
   max-width: 160px;
+}
+
+/* Teilen-Icon schiebt sich beim Hover nach links ueber das Pfeil-Icon,
+   das dabei verschwindet. */
+.blog-index-share-link {
+  z-index: 2;
+}
+
+.blog-index-actions:has(.blog-index-share-link:hover) .blog-index-next-link,
+.blog-index-actions:has(.blog-index-share-link:focus-visible) .blog-index-next-link {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.blog-index-actions:has(.blog-index-share-link:hover) .blog-index-share-link,
+.blog-index-actions:has(.blog-index-share-link:focus-visible) .blog-index-share-link {
+  transform: translateX(-34px);
 }
 
 .blog-index-content {
