@@ -8,7 +8,6 @@
 	var PanelBody = wp.components.PanelBody;
 	var SelectControl = wp.components.SelectControl;
 	var TextControl = wp.components.TextControl;
-	var TextareaControl = wp.components.TextareaControl;
 	var Button = wp.components.Button;
 	var Spinner = wp.components.Spinner;
 	var Notice = wp.components.Notice;
@@ -32,20 +31,14 @@
 			);
 		}
 
-		var bodyChildren = [];
-		if (attributes.siteName) {
-			bodyChildren.push(el('span', { className: 'schilliger-link-preview-site', key: 'site' }, attributes.siteName));
-		}
-		bodyChildren.push(
+		var bodyChildren = [
 			el(
 				'span',
 				{ className: 'schilliger-link-preview-title', key: 'title' },
 				attributes.title || __('(Titel folgt)', 'schilliger')
-			)
-		);
-		if (attributes.description) {
-			bodyChildren.push(el('span', { className: 'schilliger-link-preview-desc', key: 'desc' }, attributes.description));
-		}
+			),
+			el('span', { className: 'schilliger-link-preview-url', key: 'url' }, attributes.url),
+		];
 
 		children.push(el('div', { className: 'schilliger-link-preview-body', key: 'body' }, bodyChildren));
 
@@ -64,6 +57,8 @@
 			var setLoadError = errorState[1];
 			var blockProps = useBlockProps();
 
+			var hasContent = Boolean(attributes.title || attributes.image);
+
 			function doFetch(url) {
 				if (!url) {
 					return;
@@ -74,9 +69,7 @@
 					.then(function (data) {
 						setAttributes({
 							title: data.title || '',
-							description: data.description || '',
 							image: data.image || '',
-							siteName: data.siteName || '',
 						});
 						if (!data.title && !data.image) {
 							setLoadError(__('Konnte keine Vorschau-Daten finden. Titel/Bild kannst du unten manuell eintragen.', 'schilliger'));
@@ -90,31 +83,31 @@
 					});
 			}
 
-			if (!attributes.url) {
-				return el(
-					'div',
-					blockProps,
-					el(TextControl, {
-						label: __('Link-URL', 'schilliger'),
-						value: attributes.url,
-						placeholder: 'https://...',
-						onChange: function (value) {
-							setAttributes({ url: value });
-						},
-					}),
-					el(
-						Button,
-						{
-							variant: 'primary',
-							onClick: function () {
-								doFetch(attributes.url);
+			var mainContent = hasContent
+				? PreviewCard(attributes)
+				: el(
+						'div',
+						{ className: 'schilliger-link-preview-setup' },
+						el(TextControl, {
+							label: __('Link-URL', 'schilliger'),
+							value: attributes.url,
+							placeholder: 'https://...',
+							onChange: function (value) {
+								setAttributes({ url: value });
 							},
-							disabled: !attributes.url || loading,
-						},
-						loading ? el(Spinner, {}) : __('Vorschau laden', 'schilliger')
-					)
-				);
-			}
+						}),
+						el(
+							Button,
+							{
+								variant: 'primary',
+								onClick: function () {
+									doFetch(attributes.url);
+								},
+								disabled: !attributes.url || loading,
+							},
+							loading ? el(Spinner, {}) : __('Vorschau laden', 'schilliger')
+						)
+				  );
 
 			return el(
 				Fragment,
@@ -151,13 +144,6 @@
 								setAttributes({ title: value });
 							},
 						}),
-						el(TextareaControl, {
-							label: __('Beschreibung', 'schilliger'),
-							value: attributes.description,
-							onChange: function (value) {
-								setAttributes({ description: value });
-							},
-						}),
 						el(TextControl, {
 							label: __('Bild-URL', 'schilliger'),
 							value: attributes.image,
@@ -172,16 +158,18 @@
 								onClick: function () {
 									doFetch(attributes.url);
 								},
-								disabled: loading,
+								disabled: !attributes.url || loading,
 							},
-							loading ? el(Spinner, {}) : __('Erneut laden', 'schilliger')
+							loading ? el(Spinner, {}) : __('Vorschau (neu) laden', 'schilliger')
 						)
 					)
 				),
-				loadError
-					? el(Notice, { status: 'warning', isDismissible: false }, loadError)
-					: null,
-				el('div', blockProps, PreviewCard(attributes))
+				el(
+					'div',
+					blockProps,
+					loadError ? el(Notice, { status: 'warning', isDismissible: false }, loadError) : null,
+					mainContent
+				)
 			);
 		},
 		save: function (props) {

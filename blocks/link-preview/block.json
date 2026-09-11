@@ -5,15 +5,13 @@
 	"title": "Link-Vorschau",
 	"category": "media",
 	"icon": "admin-links",
-	"description": "Vorschaukarte (Bild, Titel, Beschreibung) fuer einen externen Link.",
+	"description": "Vorschaukarte (Bild, Titel, URL) fuer einen externen Link.",
 	"textdomain": "schilliger",
 	"attributes": {
 		"url": { "type": "string", "default": "" },
 		"size": { "type": "string", "default": "medium" },
 		"title": { "type": "string", "default": "" },
-		"description": { "type": "string", "default": "" },
-		"image": { "type": "string", "default": "" },
-		"siteName": { "type": "string", "default": "" }
+		"image": { "type": "string", "default": "" }
 	},
 	"supports": { "align": ["wide"] },
 	"editorScript": "file:./index.js",

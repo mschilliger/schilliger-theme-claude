@@ -22,6 +22,7 @@
 			var loading = state[0];
 			var setLoading = state[1];
 			var blockProps = useBlockProps({ className: 'schilliger-link-list-item' });
+			var hasContent = Boolean(attributes.title || attributes.image);
 
 			function doFetch(url) {
 				if (!url) {
@@ -42,7 +43,7 @@
 					});
 			}
 
-			if (!attributes.url) {
+			if (!hasContent) {
 				return el(
 					'div',
 					{ className: 'schilliger-link-list-item-setup' },
