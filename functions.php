@@ -167,6 +167,7 @@ add_action('wp_enqueue_scripts', function () {
 		'a' => ['reporter' => '1120px', 'blog' => '920px'],
 		'b' => ['reporter' => '1160px', 'blog' => '960px'],
 		'c' => ['reporter' => '1200px', 'blog' => '1000px'],
+		'd' => ['reporter' => '1250px', 'blog' => '1050px'],
 	];
 	$archive_active = $archive_widths[$archive_width_variant] ?? $archive_widths['b'];
 
@@ -990,7 +991,7 @@ add_action('customize_register', function (WP_Customize_Manager $wp_customize) {
 	$wp_customize->add_setting('schilliger_archive_width_variant', [
 		'type' => 'theme_mod',
 		'sanitize_callback' => function ($value) {
-			$allowed = ['a', 'b', 'c'];
+			$allowed = ['a', 'b', 'c', 'd'];
 			return in_array($value, $allowed, true) ? $value : 'b';
 		},
 		'default' => 'b',
@@ -1003,6 +1004,7 @@ add_action('customize_register', function (WP_Customize_Manager $wp_customize) {
 			'a' => __('Variante A (1120 / 920)', 'schilliger'),
 			'b' => __('Variante B (1160 / 960)', 'schilliger'),
 			'c' => __('Variante C (1200 / 1000)', 'schilliger'),
+			'd' => __('Variante D (1250 / 1050)', 'schilliger'),
 		],
 	]);
 
