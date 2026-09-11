@@ -7,6 +7,7 @@
 	var TextControl = wp.components.TextControl;
 	var Button = wp.components.Button;
 	var Spinner = wp.components.Spinner;
+	var Notice = wp.components.Notice;
 	var apiFetch = wp.apiFetch;
 	var __ = wp.i18n.__;
 
@@ -21,6 +22,9 @@
 			var state = useState(false);
 			var loading = state[0];
 			var setLoading = state[1];
+			var errorState = useState('');
+			var loadError = errorState[0];
+			var setLoadError = errorState[1];
 			var blockProps = useBlockProps({ className: 'schilliger-link-list-item' });
 			var hasContent = Boolean(attributes.title || attributes.image);
 
@@ -29,6 +33,7 @@
 					return;
 				}
 				setLoading(true);
+				setLoadError('');
 				fetchPreview(url)
 					.then(function (data) {
 						setAttributes({
@@ -36,8 +41,13 @@
 							image: data.image || '',
 							siteName: data.siteName || '',
 						});
+						if (!data.title && !data.image) {
+							setLoadError(__('Konnte keine Vorschau-Daten finden. Titel/Bild kannst du unten manuell eintragen.', 'schilliger'));
+						}
 					})
-					.catch(function () {})
+					.catch(function () {
+						setLoadError(__('Vorschau konnte nicht geladen werden. Bitte URL pruefen oder Felder manuell ausfuellen.', 'schilliger'));
+					})
 					.finally(function () {
 						setLoading(false);
 					});
@@ -47,6 +57,7 @@
 				return el(
 					'div',
 					{ className: 'schilliger-link-list-item-setup' },
+					loadError ? el(Notice, { status: 'warning', isDismissible: false }, loadError) : null,
 					el(TextControl, {
 						label: __('Link-URL', 'schilliger'),
 						value: attributes.url,
@@ -80,6 +91,7 @@
 				el(
 					'div',
 					{ className: 'schilliger-link-list-item-body' },
+					loadError ? el(Notice, { status: 'warning', isDismissible: false }, loadError) : null,
 					el(TextControl, {
 						label: __('Titel', 'schilliger'),
 						value: attributes.title,

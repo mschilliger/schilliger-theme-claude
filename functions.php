@@ -1467,6 +1467,63 @@ function schilliger_link_preview_is_youtube(string $host): bool {
 	return in_array($host, ['youtube.com', 'm.youtube.com', 'youtu.be'], true);
 }
 
+function schilliger_link_preview_is_reddit(string $host): bool {
+	$host = preg_replace('/^www\./', '', strtolower($host));
+	return in_array($host, ['reddit.com', 'old.reddit.com'], true);
+}
+
+function schilliger_link_preview_youtube_channel_id(string $url, string $path): string {
+	if (0 === strpos($path, '/channel/')) {
+		$id = trim(substr($path, strlen('/channel/')), '/');
+		return preg_match('/^UC[a-zA-Z0-9_-]{22}$/', $id) ? $id : '';
+	}
+
+	$response = wp_remote_get($url, [
+		'timeout' => 8,
+		'redirection' => 3,
+		'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+	]);
+	if (is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) >= 400) {
+		return '';
+	}
+	$body = (string) wp_remote_retrieve_body($response);
+	if (preg_match('/"channelId":"(UC[a-zA-Z0-9_-]{22})"/', $body, $matches)) {
+		return $matches[1];
+	}
+	if (preg_match('/<meta itemprop="channelId" content="(UC[a-zA-Z0-9_-]{22})"/', $body, $matches)) {
+		return $matches[1];
+	}
+	return '';
+}
+
+function schilliger_link_preview_youtube_channel_latest(string $channel_id): array {
+	$feed_response = wp_remote_get(
+		'https://www.youtube.com/feeds/videos.xml?channel_id=' . rawurlencode($channel_id),
+		['timeout' => 8]
+	);
+	if (is_wp_error($feed_response) || (int) wp_remote_retrieve_response_code($feed_response) >= 400) {
+		return ['title' => '', 'image' => ''];
+	}
+
+	$feed_body = (string) wp_remote_retrieve_body($feed_response);
+	libxml_use_internal_errors(true);
+	$dom = new DOMDocument();
+	$dom->loadXML($feed_body);
+	libxml_use_internal_errors(false);
+
+	$xpath = new DOMXPath($dom);
+	$xpath->registerNamespace('atom', 'http://www.w3.org/2005/Atom');
+	$xpath->registerNamespace('media', 'http://search.yahoo.com/mrss/');
+
+	$title_nodes = $xpath->query('/atom:feed/atom:title');
+	$channel_title = ($title_nodes && $title_nodes->length) ? trim((string) $title_nodes->item(0)->textContent) : '';
+
+	$thumb_nodes = $xpath->query('(/atom:feed/atom:entry)[1]/media:group/media:thumbnail/@url');
+	$thumb_url = ($thumb_nodes && $thumb_nodes->length) ? trim((string) $thumb_nodes->item(0)->nodeValue) : '';
+
+	return ['title' => $channel_title, 'image' => $thumb_url];
+}
+
 function schilliger_fetch_link_preview_data(string $url): array {
 	$url = esc_url_raw($url);
 	$empty = ['title' => '', 'description' => '', 'image' => '', 'siteName' => '', 'url' => $url];
@@ -1489,18 +1546,73 @@ function schilliger_fetch_link_preview_data(string $url): array {
 		return $result;
 	}
 
+	$url_path = (string) wp_parse_url($url, PHP_URL_PATH);
+
 	// YouTube blockt/verkuerzt oft serverseitige Aufrufe (Consent-Wall, Bot-Erkennung) -
-	// die oEmbed-API ist dafuer die zuverlaessige, offizielle Alternative.
+	// die oEmbed-API ist dafuer die zuverlaessige, offizielle Alternative. Kanal-URLs
+	// (/@handle, /channel/UC..., /c/..., /user/...) unterstuetzt oEmbed nicht - dafuer
+	// nehmen wir stattdessen den RSS-Feed des Kanals und dessen neuestes Video.
 	if (schilliger_link_preview_is_youtube($host)) {
-		$oembed_url = add_query_arg(['url' => $url, 'format' => 'json'], 'https://www.youtube.com/oembed');
-		$oembed_response = wp_remote_get($oembed_url, ['timeout' => 8]);
-		if (! is_wp_error($oembed_response) && (int) wp_remote_retrieve_response_code($oembed_response) < 400) {
-			$oembed_data = json_decode((string) wp_remote_retrieve_body($oembed_response), true);
-			if (is_array($oembed_data) && ! empty($oembed_data['title'])) {
-				$result['title'] = wp_strip_all_tags((string) $oembed_data['title']);
-				$result['image'] = isset($oembed_data['thumbnail_url']) ? (string) $oembed_data['thumbnail_url'] : '';
-				$result['siteName'] = 'YouTube';
-				set_transient($cache_key, $result, 30 * DAY_IN_SECONDS);
+		$is_channel_path = $url_path && (
+			0 === strpos($url_path, '/channel/')
+			|| 0 === strpos($url_path, '/@')
+			|| 0 === strpos($url_path, '/c/')
+			|| 0 === strpos($url_path, '/user/')
+		);
+
+		if ($is_channel_path) {
+			$channel_id = schilliger_link_preview_youtube_channel_id($url, $url_path);
+			if ($channel_id) {
+				$latest = schilliger_link_preview_youtube_channel_latest($channel_id);
+				if ($latest['title'] || $latest['image']) {
+					$result['title'] = $latest['title'];
+					$result['image'] = $latest['image'];
+					$result['siteName'] = 'YouTube';
+					// Kuerzere Cache-Dauer, da sich "neuestes Video" aendern kann.
+					set_transient($cache_key, $result, DAY_IN_SECONDS);
+					return $result;
+				}
+			}
+		} else {
+			$oembed_url = add_query_arg(['url' => $url, 'format' => 'json'], 'https://www.youtube.com/oembed');
+			$oembed_response = wp_remote_get($oembed_url, ['timeout' => 8]);
+			if (! is_wp_error($oembed_response) && (int) wp_remote_retrieve_response_code($oembed_response) < 400) {
+				$oembed_data = json_decode((string) wp_remote_retrieve_body($oembed_response), true);
+				if (is_array($oembed_data) && ! empty($oembed_data['title'])) {
+					$result['title'] = wp_strip_all_tags((string) $oembed_data['title']);
+					$result['image'] = isset($oembed_data['thumbnail_url']) ? (string) $oembed_data['thumbnail_url'] : '';
+					$result['siteName'] = 'YouTube';
+					set_transient($cache_key, $result, 30 * DAY_IN_SECONDS);
+					return $result;
+				}
+			}
+		}
+	}
+
+	// Reddit liefert normalen Seitenabrufen oft leere/blockierte Antworten -
+	// die oeffentliche .json-Schnittstelle umgeht das fuer Subreddit-Seiten.
+	if (schilliger_link_preview_is_reddit($host) && preg_match('#^/r/([A-Za-z0-9_]+)/?$#', $url_path, $subreddit_match)) {
+		$subreddit = $subreddit_match[1];
+		$about_response = wp_remote_get('https://www.reddit.com/r/' . rawurlencode($subreddit) . '/about.json', [
+			'timeout' => 8,
+			'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+		]);
+		if (! is_wp_error($about_response) && (int) wp_remote_retrieve_response_code($about_response) < 400) {
+			$about_data = json_decode((string) wp_remote_retrieve_body($about_response), true);
+			$sub_data = (is_array($about_data) && isset($about_data['data'])) ? $about_data['data'] : null;
+			if (is_array($sub_data)) {
+				$icon = '';
+				if (! empty($sub_data['community_icon'])) {
+					$icon = html_entity_decode((string) $sub_data['community_icon'], ENT_QUOTES);
+				} elseif (! empty($sub_data['icon_img'])) {
+					$icon = (string) $sub_data['icon_img'];
+				} elseif (! empty($sub_data['header_img'])) {
+					$icon = (string) $sub_data['header_img'];
+				}
+				$result['title'] = ! empty($sub_data['title']) ? wp_strip_all_tags((string) $sub_data['title']) : ('r/' . $subreddit);
+				$result['image'] = $icon;
+				$result['siteName'] = 'Reddit';
+				set_transient($cache_key, $result, 7 * DAY_IN_SECONDS);
 				return $result;
 			}
 		}
