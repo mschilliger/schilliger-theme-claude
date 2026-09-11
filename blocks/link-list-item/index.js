@@ -81,16 +81,6 @@
 					'div',
 					{ className: 'schilliger-link-list-item-body' },
 					el(TextControl, {
-						label: __('URL', 'schilliger'),
-						value: attributes.url,
-						onChange: function (value) {
-							setAttributes({ url: value });
-						},
-					}),
-					attributes.siteName
-						? el('span', { className: 'schilliger-link-list-item-site' }, attributes.siteName)
-						: null,
-					el(TextControl, {
 						label: __('Titel', 'schilliger'),
 						value: attributes.title,
 						onChange: function (value) {
@@ -106,6 +96,13 @@
 							setAttributes({ comment: value });
 						},
 					}),
+					el(TextControl, {
+						label: __('URL', 'schilliger'),
+						value: attributes.url,
+						onChange: function (value) {
+							setAttributes({ url: value });
+						},
+					}),
 					el(
 						Button,
 						{
@@ -113,7 +110,7 @@
 							onClick: function () {
 								doFetch(attributes.url);
 							},
-							disabled: loading,
+							disabled: !attributes.url || loading,
 						},
 						loading ? el(Spinner, {}) : __('Vorschau neu laden', 'schilliger')
 					)
@@ -135,19 +132,16 @@
 				attributes.image ? el('img', { src: attributes.image, alt: '' }) : null
 			);
 
-			var bodyChildren = [];
-			if (attributes.siteName) {
-				bodyChildren.push(el('span', { className: 'schilliger-link-list-item-site', key: 'site' }, attributes.siteName));
-			}
-			bodyChildren.push(el('span', { className: 'schilliger-link-list-item-title', key: 'title' }, attributes.title));
-			bodyChildren.push(
+			var bodyChildren = [
+				el('span', { className: 'schilliger-link-list-item-title', key: 'title' }, attributes.title),
 				el(RichText.Content, {
 					tagName: 'p',
 					className: 'schilliger-link-list-item-comment',
 					value: attributes.comment,
 					key: 'comment',
-				})
-			);
+				}),
+				el('span', { className: 'schilliger-link-list-item-url', key: 'url' }, attributes.url),
+			];
 
 			return el('a', linkProps, mediaChild, el('div', { className: 'schilliger-link-list-item-body' }, bodyChildren));
 		},

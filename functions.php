@@ -1462,6 +1462,11 @@ add_action('init', function () {
 	register_block_type(get_theme_file_path('/blocks/link-list-item'));
 });
 
+function schilliger_link_preview_is_youtube(string $host): bool {
+	$host = preg_replace('/^www\./', '', strtolower($host));
+	return in_array($host, ['youtube.com', 'm.youtube.com', 'youtu.be'], true);
+}
+
 function schilliger_fetch_link_preview_data(string $url): array {
 	$url = esc_url_raw($url);
 	$empty = ['title' => '', 'description' => '', 'image' => '', 'siteName' => '', 'url' => $url];
@@ -1484,10 +1489,27 @@ function schilliger_fetch_link_preview_data(string $url): array {
 		return $result;
 	}
 
+	// YouTube blockt/verkuerzt oft serverseitige Aufrufe (Consent-Wall, Bot-Erkennung) -
+	// die oEmbed-API ist dafuer die zuverlaessige, offizielle Alternative.
+	if (schilliger_link_preview_is_youtube($host)) {
+		$oembed_url = add_query_arg(['url' => $url, 'format' => 'json'], 'https://www.youtube.com/oembed');
+		$oembed_response = wp_remote_get($oembed_url, ['timeout' => 8]);
+		if (! is_wp_error($oembed_response) && (int) wp_remote_retrieve_response_code($oembed_response) < 400) {
+			$oembed_data = json_decode((string) wp_remote_retrieve_body($oembed_response), true);
+			if (is_array($oembed_data) && ! empty($oembed_data['title'])) {
+				$result['title'] = wp_strip_all_tags((string) $oembed_data['title']);
+				$result['image'] = isset($oembed_data['thumbnail_url']) ? (string) $oembed_data['thumbnail_url'] : '';
+				$result['siteName'] = 'YouTube';
+				set_transient($cache_key, $result, 30 * DAY_IN_SECONDS);
+				return $result;
+			}
+		}
+	}
+
 	$response = wp_remote_get($url, [
 		'timeout' => 8,
 		'redirection' => 3,
-		'user-agent' => 'Mozilla/5.0 (compatible; SchilligerLinkPreview/1.0; +' . home_url('/') . ')',
+		'user-agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
 	]);
 
 	if (is_wp_error($response) || (int) wp_remote_retrieve_response_code($response) >= 400) {

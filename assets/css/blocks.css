@@ -150,14 +150,6 @@
   min-width: 0;
 }
 
-.schilliger-link-list-item-site {
-  font-family: var(--sans);
-  font-size: 0.6rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
 .schilliger-link-list-item-title {
   font-family: "Courier New", Courier, monospace;
   font-weight: 700;
@@ -171,6 +163,15 @@
   line-height: 1.55;
   color: #4a4a4a;
   margin: 0;
+}
+
+.schilliger-link-list-item-url {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  color: #9a9a9a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (max-width: 480px) {
