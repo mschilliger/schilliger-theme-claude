@@ -23,6 +23,72 @@ body.single-post {
   margin: 0;
 }
 
+.single-post-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 24px;
+}
+
+.single-post-icon-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid var(--rule);
+  border-radius: 13px;
+  background: #ffffff;
+  color: #0c0c0c;
+  text-decoration: none;
+  overflow: hidden;
+  white-space: nowrap;
+  box-sizing: border-box;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.2s ease, color 0.2s ease, width 0.25s ease, padding 0.25s ease;
+}
+
+.single-post-icon-link svg {
+  flex: 0 0 auto;
+}
+
+.single-post-icon-link-text {
+  font-family: var(--sans);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0;
+  max-width: 0;
+  overflow: hidden;
+  transition: opacity 0.2s ease, max-width 0.25s ease;
+}
+
+.single-post-icon-link:hover,
+.single-post-icon-link:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  width: auto;
+  padding: 0 10px;
+}
+
+.single-post-icon-link:hover .single-post-icon-link-text,
+.single-post-icon-link:focus-visible .single-post-icon-link-text {
+  opacity: 1;
+  max-width: 160px;
+}
+
+/* Blogübersicht-Stil "Box White" (Customizer: Design -> Blogübersicht Stil) */
+body.blog-overview-box-white .single-post-inner {
+  width: 900px;
+  max-width: 100%;
+  padding: 20px;
+  background: #ffffff;
+}
+
 .single-post-wrap .post-kicker {
   font-family: var(--sans);
   font-size: 0.8rem;
